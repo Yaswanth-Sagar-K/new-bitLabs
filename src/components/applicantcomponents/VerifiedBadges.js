@@ -264,6 +264,9 @@ const VerifiedBadges = () => {
     };
 
     fetchTestData();
+    if(testData === ''){
+      fetchTestData();
+    }
   }, [user.id]);
 
   useEffect(() => {
@@ -317,19 +320,19 @@ const VerifiedBadges = () => {
             aptitudeTest.testDateTime[5] // Seconds
           );
           const retakeDate = new Date(testDateTime);
-          retakeDate.setDate(retakeDate.getDate() + 0); // Set retake date to 7 days later
-          retakeDate.setHours(retakeDate.getHours() + 5); // Add 5 hours
-          retakeDate.setMinutes(retakeDate.getMinutes() + 30); // Add 30 minutes
+          retakeDate.setDate(retakeDate.getDate() + 7); // Set the retake date to 7 days later
+            retakeDate.setHours(retakeDate.getHours() + 5); // Add 5 hours
+            retakeDate.setMinutes(retakeDate.getMinutes() + 30); // Add 30 minutes
     
           const calculateTimeLeft = () => {
             const now = new Date();
             const difference = retakeDate - now;
-    
             if (difference > 0) {
               const timeLeft = {
-                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                 days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                  hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                  minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                  seconds: Math.floor((difference % (1000 * 60)) / 1000),
               };
               setTimer(timeLeft);
               setIsTimerComplete(false); // Timer is still counting down
@@ -382,6 +385,7 @@ const VerifiedBadges = () => {
                   days: Math.floor(difference / (1000 * 60 * 60 * 24)),
                   hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
                   minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                  seconds: Math.floor((difference % (1000 * 60)) / 1000),
                 };
                 setTimer(timeLeft);
                 setIsTimerComplete(false); // Timer is still counting down
@@ -479,7 +483,7 @@ const VerifiedBadges = () => {
 
  // Update button state based on the presence of the timer and current step
  useEffect(() => {
-  console.log(`currentStep: ${currentStep}, timer: ${timer}`); // Debugging statement
+  console.log(`currentStep: ${currentStep}, timer: ${JSON.stringify(timer)}`); // Debugging statement
   if (timer) {
     if (currentStep === 1 || currentStep === 2) {
       console.log("Timer present, disabling button"); // Debugging statement
@@ -764,7 +768,7 @@ const VerifiedBadges = () => {
         style={buttonStyle()}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={!isDisabled ? () => handleTakeTest('General Aptitude Test') : null} // Conditionally add onClick
+        onClick={!isDisabled ? () => handleTakeTest('General Aptitude Test') : null } // Conditionally add onClick
       >
         <span style={spanStyle}>
       {isDisabled ? 'Retake test' : 'Take Test'} {/* Conditionally change button text */}
@@ -780,15 +784,19 @@ const VerifiedBadges = () => {
   )}
   {timer.days > 0 && 'd '}
   
-  {timer.hours > 0 && (
+  {timer.hours > -1 && (
     <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.hours}</span>
   )}
-  {timer.hours > 0 && 'h '}
+  {timer.hours > -1 && 'h '}
   
   {timer.minutes > 0 && (
     <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.minutes}</span>
   )}
   {timer.minutes > 0 && 'm'}
+  {timer.seconds > 0 && timer.hours === 0 && timer.days === 0 && (
+    <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.seconds}</span>
+  )}
+  {timer.seconds > 0 && timer.hours === 0 && timer.days === 0 && 'sec'}
 </div>
         </div>
       )}
@@ -852,6 +860,10 @@ const VerifiedBadges = () => {
     }}>{timer.minutes}</span>
   )}
   {timer.minutes > 0 && 'm'}
+  {timer.seconds > 0 && timer.minutes === 0 && (
+    <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.seconds}</span>
+  )}
+  {timer.seconds > 0 && timer.minutes === 0 && 'sec'}
 </div>
         </div>
       )}
