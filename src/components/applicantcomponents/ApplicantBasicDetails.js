@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ApplicantAPIService, { apiUrl } from '../../services/ApplicantAPIService';
 import { useUserContext } from '../common/UserProvider';
-import { useNavigate,useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import 'react-international-phone/style.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
@@ -10,7 +10,7 @@ import { ClipLoader } from 'react-spinners';
 import './ApplicantBasicDetails.css';
 import './ApplicantBasicDetails1.css';
 import Logo from '../../images/artboard.svg';
-import 'react-bootstrap-typeahead/css/Typeahead.css'; 
+import 'react-bootstrap-typeahead/css/Typeahead.css';
 import ModalComponent from './ModalComponent';
 import ModalWrapper1 from './ModalWrapper1';
 import ResumeBuilder from './ResumeBuilder';
@@ -19,7 +19,7 @@ import Snackbar from '../common/Snackbar';
 const ApplicantBasicDetails = () => {
   const { user } = useUserContext();
   let { number } = useParams();
-  
+
   number = parseInt(number, 10);
   const [loading, setLoading] = useState(true);
   const [currentStage, setCurrentStage] = useState(number);
@@ -27,7 +27,7 @@ const ApplicantBasicDetails = () => {
   const [error, setError] = useState('');
   const [isNextDisabled, setIsNextDisabled] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
-  const[imageSrc, setImageSrc]= useState();
+  const [imageSrc, setImageSrc] = useState();
   const [shouldBeHidden, setShouldBeHidden] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -71,58 +71,58 @@ const ApplicantBasicDetails = () => {
 
     if (name === 'firstName' || name === 'lastName') {
       if (value.length < 3) {
-          error = `${name === 'firstName' ? 'First' : 'Last'} name should be at least 3 characters long.`;
+        error = `${name === 'firstName' ? 'First' : 'Last'} name should be at least 3 characters long.`;
       } else if (!/^[a-zA-Z\s]+$/.test(value)) {
-          error = `${name === 'firstName' ? 'First' : 'Last'} name should contain only letters and spaces without special characters and numbers.`;
+        error = `${name === 'firstName' ? 'First' : 'Last'} name should contain only letters and spaces without special characters and numbers.`;
       }
-  
-  
+
+
     } else if (name === 'mobilenumber') {
-        if (!/^[6789]\d{9}$/.test(value)) {
-            error = 'Should be 10 digits and start with 6, 7, 8, or 9.';
-        }
+      if (!/^[6789]\d{9}$/.test(value)) {
+        error = 'Should be 10 digits and start with 6, 7, 8, or 9.';
+      }
     }
 
     setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: error,
+      ...prevErrors,
+      [name]: error,
     }));
 
-    return !error; 
-};
+    return !error;
+  };
 
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setApplicant((prevApplicant) => ({
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setApplicant((prevApplicant) => ({
       ...prevApplicant,
       [name]: value,
-  }));
+    }));
 
-  
-};
 
-const handleBlur = (e) => {
-  const { name, value } = e.target;
-  validateInput(name, value);
-  
- 
-  
-};
+  };
 
-const handleSkillsChange = (selected) => {
-  const selectedSkills = selected.map(skillName => ({ skillName }));
-  setSkillsRequired(selectedSkills);
-  if (errors.skillsRequired) {
-    setErrors((prevErrors) => ({ ...prevErrors, skillsRequired: '' }));
-  }
-};
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    validateInput(name, value);
 
-const handlePreferredJobLocationsChange = (selected) => {
-  setPreferredJobLocations(selected);
-  if (errors.preferredJobLocations) {
-    setErrors((prevErrors) => ({ ...prevErrors, preferredJobLocations: '' }));
-  }
-};
+
+
+  };
+
+  const handleSkillsChange = (selected) => {
+    const selectedSkills = selected.map(skillName => ({ skillName }));
+    setSkillsRequired(selectedSkills);
+    if (errors.skillsRequired) {
+      setErrors((prevErrors) => ({ ...prevErrors, skillsRequired: '' }));
+    }
+  };
+
+  const handlePreferredJobLocationsChange = (selected) => {
+    setPreferredJobLocations(selected);
+    if (errors.preferredJobLocations) {
+      setErrors((prevErrors) => ({ ...prevErrors, preferredJobLocations: '' }));
+    }
+  };
 
 
   const [experience, setExperience] = useState('');
@@ -142,7 +142,7 @@ const handlePreferredJobLocationsChange = (selected) => {
   const [loginUrl, setLoginUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const steps = ['Personal Information', 'Professional Details', 'Upload Resume'];
-  const yearsOptions = Array.from({ length: 16 }, (_, i) => ({ label: `${i} ` }));
+  const yearsOptions = Array.from({ length: 16 }, (_, i) => ({ label: `${i}` }));
 
   const qualificationsOptions = ['B.Tech', 'MCA', 'Degree', 'Intermediate', 'Diploma'];
   const skillsOptions = ['Java', 'C', 'C++', 'C Sharp', 'Python', 'HTML', 'CSS', 'JavaScript', 'TypeScript', 'Angular', 'React', 'Vue', 'JSP', 'Servlets', 'Spring', 'Spring Boot', 'Hibernate', '.Net', 'Django', 'Flask', 'SQL', 'MySQL', 'SQL-Server', 'Mongo DB', 'Selenium', 'Regression Testing', 'Manual Testing'];
@@ -151,8 +151,8 @@ const handlePreferredJobLocationsChange = (selected) => {
   useEffect(() => {
     setLoading(false);
   }, []);
-  
-  
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,8 +164,8 @@ const handlePreferredJobLocationsChange = (selected) => {
         };
         setRequestData(newData);
 
-      
-       
+
+
       } catch (error) {
         console.error('Error fetching applicant data:', error);
       }
@@ -175,42 +175,42 @@ const handlePreferredJobLocationsChange = (selected) => {
 
   useEffect(() => {
     console.log(isFormValid);
-}, [isFormValid]);
+  }, [isFormValid]);
 
-const validateForm1 = () => {
-  const newErrors = {};
-  const validFirstName = validateInput('firstName', applicant.firstName);
-  const validLastName = validateInput('lastName', applicant.lastName);
-  const validMobileNumber = validateInput('mobilenumber', applicant.mobilenumber);
+  const validateForm1 = () => {
+    const newErrors = {};
+    const validFirstName = validateInput('firstName', applicant.firstName);
+    const validLastName = validateInput('lastName', applicant.lastName);
+    const validMobileNumber = validateInput('mobilenumber', applicant.mobilenumber);
 
-  if (!applicant.firstName) {
-    newErrors.firstName = "First name is required";
-} else {
-    if (!validateInput('firstName', applicant.firstName)) {
+    if (!applicant.firstName) {
+      newErrors.firstName = "First name is required";
+    } else {
+      if (!validateInput('firstName', applicant.firstName)) {
         newErrors.firstName = errors.firstName;
+      }
     }
-}
 
-if (!applicant.lastName) {
-    newErrors.lastName = "Last name is required";
-} else {
-    if (!validateInput('lastName', applicant.lastName)) {
+    if (!applicant.lastName) {
+      newErrors.lastName = "Last name is required";
+    } else {
+      if (!validateInput('lastName', applicant.lastName)) {
         newErrors.lastName = errors.lastName;
+      }
     }
-}
 
-if (!applicant.mobilenumber) {
-    newErrors.mobilenumber = "Mobile number is required";
-} else {
-    if (!validateInput('mobilenumber', applicant.mobilenumber)) {
+    if (!applicant.mobilenumber) {
+      newErrors.mobilenumber = "Mobile number is required";
+    } else {
+      if (!validateInput('mobilenumber', applicant.mobilenumber)) {
         newErrors.mobilenumber = errors.mobilenumber;
+      }
     }
-}
 
-  setErrors(newErrors);
-  return validFirstName && validLastName && validMobileNumber && 
-         applicant.firstName && applicant.lastName && applicant.mobilenumber;
-};
+    setErrors(newErrors);
+    return validFirstName && validLastName && validMobileNumber &&
+      applicant.firstName && applicant.lastName && applicant.mobilenumber;
+  };
 
 
   const makeApiCall1 = async () => {
@@ -218,15 +218,15 @@ if (!applicant.mobilenumber) {
       console.log(" returned in validation");
       return false;
     }
-   
+
   };
 
- 
-  
+
+
   const makeApiCall2 = async () => {
-   
- 
-    const applicantProfileDTO={
+
+
+    const applicantProfileDTO = {
       basicDetails: basicDetails,
       skillsRequired: skillsRequired,
       experience,
@@ -234,7 +234,7 @@ if (!applicant.mobilenumber) {
       specialization,
       preferredJobLocations,
     }
- 
+
     if (!validateForm1()) {
       console.log(" returned in validation");
       return false;
@@ -242,7 +242,7 @@ if (!applicant.mobilenumber) {
     try {
       const jwtToken = localStorage.getItem('jwtToken');
       console.log(" returned during api call");
-     
+
       // const putProfileResponse = await axiosInstance.post(
       //   `${apiUrl}/applicantprofile/createprofile/${user.id}`,
       //   applicantProfileDTO,
@@ -253,117 +253,117 @@ if (!applicant.mobilenumber) {
       //   }
       // );
       // console.log(" returned after api call");
- 
-     // Transform the payload
- 
-     const putProfileResponse = await axios.post(
-      `${apiUrl}/applicantprofile/createprofile/${user.id}`,
-      applicantProfileDTO,
-      {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      }
-    );
- 
-    console.log("Profile successfully created in the system.");
- 
- 
-  const MAX_RETRIES = 50; // Maximum retry attempts
-let retryCount = 0;
- 
-async function updateZohoCRM() {
-  const zohoUpdateData = {
-    data: [
-      {
-        Owner: { id: "4569859000019865042" },
-        Last_Name: basicDetails.lastName,
-        First_Name: basicDetails.firstName,
-        Email: basicDetails.email,
-        Phone: basicDetails.alternatePhoneNumber,
-        // Lead_Status: "completed profile",
-        Status_TS: "Completed Profile",
-        Industry: "Software",
-        Technical_Skills: applicantProfileDTO.skillsRequired
-        .map(skill => skill.skillName.toLowerCase()),
-        Specialization: applicantProfileDTO.specialization,
-        Education_Qualifications: applicantProfileDTO.qualification,
-        Degree_level: applicantProfileDTO.qualification,
-        Total_work_experience_in_years: applicantProfileDTO.experience,
-        Preferred_Job_Locations: applicantProfileDTO.preferredJobLocations.join(", "),
-      },
-    ],
-  };
-  const zohoUserId = sessionStorage.getItem('zohoUserId');
- 
-  while (retryCount < MAX_RETRIES) {
-    try {
-      const response = await axios.put(
-        `${apiUrl}/zoho/update/${zohoUserId}`,
-        zohoUpdateData
+
+      // Transform the payload
+
+      const putProfileResponse = await axios.post(
+        `${apiUrl}/applicantprofile/createprofile/${user.id}`,
+        applicantProfileDTO,
+        {
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+          },
+        }
       );
- 
-      if (response.status === 200 || response.status === 201) {
-        console.log("✅ Lead successfully updated in Zoho CRM.");
-        return response; // Exit function on success
+
+      console.log("Profile successfully created in the system.");
+
+
+      const MAX_RETRIES = 50; // Maximum retry attempts
+      let retryCount = 0;
+
+      async function updateZohoCRM() {
+        const zohoUpdateData = {
+          data: [
+            {
+              Owner: { id: "4569859000019865042" },
+              Last_Name: basicDetails.lastName,
+              First_Name: basicDetails.firstName,
+              Email: basicDetails.email,
+              Phone: basicDetails.alternatePhoneNumber,
+              // Lead_Status: "completed profile",
+              Status_TS: "Completed Profile",
+              Industry: "Software",
+              Technical_Skills: applicantProfileDTO.skillsRequired
+                .map(skill => skill.skillName.toLowerCase()),
+              Specialization: applicantProfileDTO.specialization,
+              Education_Qualifications: applicantProfileDTO.qualification,
+              Degree_level: applicantProfileDTO.qualification,
+              Total_work_experience_in_years: applicantProfileDTO.experience,
+              Preferred_Job_Locations: applicantProfileDTO.preferredJobLocations.join(", "),
+            },
+          ],
+        };
+        const zohoUserId = sessionStorage.getItem('zohoUserId');
+
+        while (retryCount < MAX_RETRIES) {
+          try {
+            const response = await axios.put(
+              `${apiUrl}/zoho/update/${zohoUserId}`,
+              zohoUpdateData
+            );
+
+            if (response.status === 200 || response.status === 201) {
+              console.log("✅ Lead successfully updated in Zoho CRM.");
+              return response; // Exit function on success
+            }
+
+          } catch (error) {
+            const status = error.response?.status;
+
+            if (status === 401) {
+              console.error("🔴 Unauthorized (401). Stopping retries.");
+              break; // Stop retrying on 401
+            }
+
+            if (status === 403 || status === 500) {
+              console.warn(`⚠️ Error ${status}. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+              retryCount++;
+              await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait before retrying
+            } else {
+              console.error(`🚨 Unexpected Error: ${status}`, error);
+              break; // Stop retrying on any other error
+            }
+          }
+        }
+
+        console.error("❌ Max retries reached. Could not update Zoho CRM.");
       }
- 
-    } catch (error) {
-      const status = error.response?.status;
- 
-      if (status === 401) {
-        console.error("🔴 Unauthorized (401). Stopping retries.");
-        break; // Stop retrying on 401
-      }
- 
-      if (status === 403 || status === 500) {
-        console.warn(`⚠️ Error ${status}. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
-        retryCount++;
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait before retrying
-      } else {
-        console.error(`🚨 Unexpected Error: ${status}`, error);
-        break; // Stop retrying on any other error
-      }
-    }
-  }
- 
-  console.error("❌ Max retries reached. Could not update Zoho CRM.");
-}
- 
-// Call the function
-await updateZohoCRM();
- 
- 
-     const transformedApplicantProfileDTO = {
-  ...applicantProfileDTO,
-  locations: applicantProfileDTO.preferredJobLocations.join(','),
-  skills: applicantProfileDTO.skillsRequired.map(skill => skill.skillName).join(','),
-};
- 
-delete transformedApplicantProfileDTO.preferredJobLocations;
-delete transformedApplicantProfileDTO.skillsRequired;
- 
-// const webhookUrl = 'https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjUwNTY1MDYzMjA0MzI1MjZjNTUzYzUxMzQi_pc';
-// const webhookPayload = {
-//   userId: user.id,
-//   profileData: transformedApplicantProfileDTO,
-// };
- 
-// const webhookResponse = await fetch(webhookUrl, {
-//   method: 'POST',
-//   headers: {
-//       'Content-Type': 'application/json',
-//   },
-//   body: JSON.stringify(webhookPayload),
-// });
- 
-//     if (!webhookResponse.ok) {
-//       throw new Error('Failed to send data to the webhook');
-//     }
- 
-//     console.log('Webhook response:', await webhookResponse.json());
- 
-   
+
+      // Call the function
+      await updateZohoCRM();
+
+
+      const transformedApplicantProfileDTO = {
+        ...applicantProfileDTO,
+        locations: applicantProfileDTO.preferredJobLocations.join(','),
+        skills: applicantProfileDTO.skillsRequired.map(skill => skill.skillName).join(','),
+      };
+
+      delete transformedApplicantProfileDTO.preferredJobLocations;
+      delete transformedApplicantProfileDTO.skillsRequired;
+
+      // const webhookUrl = 'https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjUwNTY1MDYzMjA0MzI1MjZjNTUzYzUxMzQi_pc';
+      // const webhookPayload = {
+      //   userId: user.id,
+      //   profileData: transformedApplicantProfileDTO,
+      // };
+
+      // const webhookResponse = await fetch(webhookUrl, {
+      //   method: 'POST',
+      //   headers: {
+      //       'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(webhookPayload),
+      // });
+
+      //     if (!webhookResponse.ok) {
+      //       throw new Error('Failed to send data to the webhook');
+      //     }
+
+      //     console.log('Webhook response:', await webhookResponse.json());
+
+
     } catch (error) {
       console.error('Error submitting form data:', error);
     }
@@ -373,43 +373,43 @@ delete transformedApplicantProfileDTO.skillsRequired;
   const handleResumeSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const fileSizeLimit = 5 * 1024 * 1024; 
+      const fileSizeLimit = 5 * 1024 * 1024;
       const allowedTypes = ['application/pdf'];
-  
+
       if (file.size > fileSizeLimit) {
-        
+
         addSnackbar({ message: 'File size should be less than 5MB and Only PDF allowed.', type: 'error' });
         setErrorMessage('File size should be less than 5MB and Only PDF allowed.');
         setSelectedFile(null);
         return;
       }
-  
+
       if (!allowedTypes.includes(file.type)) {
-        
+
         addSnackbar({ message: 'Only PDF file types are allowed.', type: 'error' });
         setErrorMessage('Only PDF file types are allowed.');
         setSelectedFile(null);
         return;
       }
-  
+
       setErrorMessage('');
       setResumeFile(file);
       setSelectedFile(file);
     }
   };
-  
-  
-  
+
+
+
   const triggerFileInputClick = () => {
     document.getElementById('tf-upload-img').click();
   };
-  
+
   const handleDragOver = (event) => {
     event.preventDefault();
     event.stopPropagation();
     setDragActive(true);
   };
-  
+
   const handleDragLeave = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -420,26 +420,26 @@ delete transformedApplicantProfileDTO.skillsRequired;
     event.preventDefault();
     event.stopPropagation();
     setDragActive(false);
-  
+
     const file = event.dataTransfer.files[0];
     if (file) {
-      const fileSizeLimit = 1 * 1024 * 1024; 
+      const fileSizeLimit = 1 * 1024 * 1024;
       const allowedTypes = ['application/pdf'];
-  
+
       if (file.size > fileSizeLimit) {
         addSnackbar({ message: 'File size should be less than 1MB and Only PDF allowed.', type: 'error' });
         setErrorMessage('File size should be less than 1MB and Only PDF allowed.');
         setSelectedFile(null);
         return;
       }
-  
+
       if (!allowedTypes.includes(file.type)) {
         addSnackbar({ message: 'Only PDF file types are allowed.', type: 'error' });
         setErrorMessage('Only PDF file types are allowed.');
         setSelectedFile(null);
         return;
       }
-  
+
       setErrorMessage('');
       setSelectedFile(file);
       setResumeFile(file);
@@ -462,13 +462,13 @@ delete transformedApplicantProfileDTO.skillsRequired;
         }
       );
       console.log(response.data);
-    
+
       addSnackbar({ message: response.data, type: 'success' });
       window.location.reload();
     } catch (error) {
       console.error('Error uploading resume:', error);
-     
-     addSnackbar({ message: 'Error uploading resume. Please try again.', type: 'error' });
+
+      addSnackbar({ message: 'Error uploading resume. Please try again.', type: 'error' });
     }
   };
 
@@ -492,7 +492,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
         .then(data => {
           const loginUrl = `https://resume.bitlabs.in:5173/auth/login?identifier=${encodeURIComponent(requestData.identifier)}&password=${encodeURIComponent(requestData.password)}`;
           setLoginUrl(loginUrl);
-          
+
           setIsModalOpen(true);
         })
         .catch(error => {
@@ -503,52 +503,52 @@ delete transformedApplicantProfileDTO.skillsRequired;
 
   const validateFields = () => {
     const newErrors = {};
-    
+
     if (!qualification) newErrors.qualification = 'Qualification is required';
     if (!specialization) newErrors.specialization = 'Specialization is required';
     if (skillsRequired.length === 0) newErrors.skillsRequired = 'Skills are required';
     if (!experience) newErrors.experience = 'Experience is required';
     if (preferredJobLocations.length === 0) newErrors.preferredJobLocations = 'Preferred Job Locations are required';
-    
+
     setErrors(newErrors);
-  
+
 
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleNext = async () => {
-  
+
     try {
-     
+
       switch (currentStage) {
         case 1:
           if (!validateForm1()) {
             console.log(" returned in validation");
             return false;
           }
-          
+
           console.log('API call 1 response:');
           break;
         case 2:
 
-        if (validateFields()) {
-          const response2 = await makeApiCall2(); 
-          console.log('API call 2 response:');
-        } else {
-          return false;
-        }
+          if (validateFields()) {
+            const response2 = await makeApiCall2();
+            console.log('API call 2 response:');
+          } else {
+            return false;
+          }
           break;
         default:
           console.warn('Unexpected stage:');
-          
+
           break;
       }
-  
-      
+
+
       setCurrentStage((prevStage) => Math.min(prevStage + 1, steps.length));
     } catch (error) {
       console.error('Error during API call:', error);
-     
+
     }
   };
 
@@ -558,7 +558,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
 
   const handleCloseSnackbar = (index) => {
     setSnackbars((prevSnackbars) => prevSnackbars.filter((_, i) => i !== index));
-     
+
   };
 
   const handleBack = () => {
@@ -571,7 +571,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
       setErrorMessage('Please upload a valid file.');
       return;
     }
-   
+
     try {
       const jwtToken = localStorage.getItem('jwtToken');
       const formData = new FormData();
@@ -587,22 +587,22 @@ delete transformedApplicantProfileDTO.skillsRequired;
         }
       );
       console.log(response.data);
-      
+
       addSnackbar({ message: 'Profile saved successfully.', type: 'success' });
 
-      
-    setTimeout(() => {
-      navigate('/applicanthome');
-    }, 3000); 
-      
+
+      setTimeout(() => {
+        navigate('/applicanthome');
+      }, 3000);
+
     } catch (error) {
       console.error('Error uploading resume:', error);
-      
+
       addSnackbar({ message: 'Error uploading resume. Please try again.', type: 'error' });
     }
     resetForm();
-   
-   
+
+
   };
 
   const validateForm = () => {
@@ -641,27 +641,27 @@ delete transformedApplicantProfileDTO.skillsRequired;
   };
 
   const specializationsByQualification = {
-  'B.Tech': ['Computer Science and Engineering (CSE)',
-                'Electronics and Communication Engineering (ECE)',
-                'Electrical and Electronics Engineering (EEE)',
-                'Mechanical Engineering (ME)',
-                'Civil Engineering (CE)',
-                'Aerospace Engineering',
-                'Information Technology(IT)',
-                 'Chemical Engineering',
-                 'Biotechnology Engineering'],
-    'MCA': ['Software Engineering', 'Data Science','Artificial Intelligence','Machine Learning','Information Security',
-             'Cloud Computing','Mobile Application Development','Web Development','Database Management','Network Administration',
-            'Cyber Security','IT Project Management'],
-    'Degree': ['Bachelor of Science (B.Sc) Physics','Bachelor of Science (B.Sc) Mathematics','Bachelor of Science (B.Sc) Statistics',
-               'Bachelor of Science (B.Sc) Computer Science','Bachelor of Science (B.Sc) Electronics','Bachelor of Science (B.Sc) Chemistry',
-               'Bachelor of Commerce (B.Com)'],
-    'Intermediate': ['MPC','BiPC','CEC','HEC'],
-    'Diploma': ['Mechanical Engineering','Civil Engineering','Electrical Engineering','Electronics and Communication Engineering',
-                'Computer Engineering','Automobile Engineering','Chemical Engineering','Information Technology','Instrumentation Engineering',
-                 'Mining Engineering','Metallurgical Engineering','Agricultural Engineering','Textile Technology','Architecture',
-                  'Interior Designing','Fashion Designing','Hotel Management and Catering Technology','Pharmacy','Medical Laboratory Technology',
-                 'Radiology and Imaging Technology'],  
+    'B.Tech': ['Computer Science and Engineering (CSE)',
+      'Electronics and Communication Engineering (ECE)',
+      'Electrical and Electronics Engineering (EEE)',
+      'Mechanical Engineering (ME)',
+      'Civil Engineering (CE)',
+      'Aerospace Engineering',
+      'Information Technology(IT)',
+      'Chemical Engineering',
+      'Biotechnology Engineering'],
+    'MCA': ['Software Engineering', 'Data Science', 'Artificial Intelligence', 'Machine Learning', 'Information Security',
+      'Cloud Computing', 'Mobile Application Development', 'Web Development', 'Database Management', 'Network Administration',
+      'Cyber Security', 'IT Project Management'],
+    'Degree': ['Bachelor of Science (B.Sc) Physics', 'Bachelor of Science (B.Sc) Mathematics', 'Bachelor of Science (B.Sc) Statistics',
+      'Bachelor of Science (B.Sc) Computer Science', 'Bachelor of Science (B.Sc) Electronics', 'Bachelor of Science (B.Sc) Chemistry',
+      'Bachelor of Commerce (B.Com)'],
+    'Intermediate': ['MPC', 'BiPC', 'CEC', 'HEC'],
+    'Diploma': ['Mechanical Engineering', 'Civil Engineering', 'Electrical Engineering', 'Electronics and Communication Engineering',
+      'Computer Engineering', 'Automobile Engineering', 'Chemical Engineering', 'Information Technology', 'Instrumentation Engineering',
+      'Mining Engineering', 'Metallurgical Engineering', 'Agricultural Engineering', 'Textile Technology', 'Architecture',
+      'Interior Designing', 'Fashion Designing', 'Hotel Management and Catering Technology', 'Pharmacy', 'Medical Laboratory Technology',
+      'Radiology and Imaging Technology'],
   };
 
   const renderStageFields = () => {
@@ -669,128 +669,134 @@ delete transformedApplicantProfileDTO.skillsRequired;
       case 1:
         return (
           <div className="input-container">
-      <div className="input-wrapper">
-        <input
-          type="text"
-          name="firstName"
-          placeholder="*First Name"
-          value={applicant.firstName}
-          className="input-form"
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-        />
-        {errors.firstName && <div className="error-message">{errors.firstName}</div>}
-      </div>
+            <div className="input-wrapper">
+              <input
+                type="text"
+                name="firstName"
+                placeholder="*First Name"
+                value={applicant.firstName}
+                className="input-form"
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+              {errors.firstName && <div className="error-message">{errors.firstName}</div>}
+            </div>
 
-      <div className="input-wrapper">
-        <input
-          type="text"
-          name="lastName"
-          placeholder="*Last Name"
-          value={applicant.lastName}
-          className="input-form"
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-        />
-        {errors.lastName && <div className="error-message">{errors.lastName}</div>}
-      </div>
+            <div className="input-wrapper">
+              <input
+                type="text"
+                name="lastName"
+                placeholder="*Last Name"
+                value={applicant.lastName}
+                className="input-form"
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+              {errors.lastName && <div className="error-message">{errors.lastName}</div>}
+            </div>
 
-      <div className="input-wrapper">
-        <input
-          type="email"
-          placeholder="*Email"
-          value={applicant.email}
-          className="input-form"
-          readOnly
-          style={{ color: '#ccc' }} 
-        />
-        {errors.email && <div className="error-message">{errors.email}</div>}
-      </div>
+            <div className="input-wrapper">
+              <input
+                type="email"
+                placeholder="*Email"
+                value={applicant.email}
+                className="input-form"
+                readOnly
+                style={{ color: '#ccc' }}
+              />
+              {errors.email && <div className="error-message">{errors.email}</div>}
+            </div>
 
-      <div className="input-wrapper">
-        <input
-          type="tel"
-          name="mobilenumber"
-          placeholder="*WhatsApp Number"
-          value={applicant.mobilenumber}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          className="input-form"
-          required
-        />
-        {errors.mobilenumber && <div className="error-message">{errors.mobilenumber}</div>}
-      </div>
-    </div>
+            <div className="input-wrapper">
+              <input
+                type="tel"
+                name="mobilenumber"
+                placeholder="*WhatsApp Number"
+                value={applicant.mobilenumber}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                className="input-form"
+                required
+              />
+              {errors.mobilenumber && <div className="error-message">{errors.mobilenumber}</div>}
+            </div>
+          </div>
         );
       case 2:
         return (
           <div className="input-container">
-           <div className="input-wrapper">
-        <Typeahead
-          id="qualification"
-          options={qualificationsOptions}
-          placeholder="*Qualification"
-          onChange={handleQualificationChange}
-          selected={qualification ? [qualification] : []}
-          className="input-form typeahead"
-        />
-        {errors.qualification && <div className="error-message">{errors.qualification}</div>}
-      </div>
+            <div className="input-wrapper">
+              <Typeahead
+                id="qualification"
+                options={qualificationsOptions}
+                placeholder="*Qualification"
+                onChange={handleQualificationChange}
+                selected={qualification ? [qualification] : []}
+                className="input-form typeahead"
+              />
+              {errors.qualification && <div className="error-message">{errors.qualification}</div>}
+            </div>
 
-      <div className="input-wrapper">
-        <Typeahead
-          id="specialization"
-          options={qualification ? specializationsByQualification[qualification] : []}
-          placeholder="*Specialization"
-          onChange={handleSpecializationChange}
-          selected={specialization ? [specialization] : []}
-          className="input-form typeahead"
-        />
-        {errors.specialization && <div className="error-message">{errors.specialization}</div>}
-      </div>
-  
-      <div className="input-wrapper">
-        <Typeahead
-          id="skillsRequired"
-          multiple
-          options={skillsOptions}
-          placeholder="*Skills Required"
-          onChange={handleSkillsChange}
-          selected={skillsRequired.map(skill => skill.skillName)}
-          className="input-form typeahead"
-        />
-        {errors.skillsRequired && <div className="error-message">{errors.skillsRequired}</div>}
-      </div>
+            <div className="input-wrapper">
+              <Typeahead
+                id="specialization"
+                options={qualification ? specializationsByQualification[qualification] : []}
+                placeholder="*Specialization"
+                onChange={handleSpecializationChange}
+                selected={specialization ? [specialization] : []}
+                className="input-form typeahead"
+              />
+              {errors.specialization && <div className="error-message">{errors.specialization}</div>}
+            </div>
+
+            <div className="input-wrapper">
+              <Typeahead
+                id="skillsRequired"
+                multiple
+                options={skillsOptions}
+                placeholder="*Skills Required"
+                onChange={handleSkillsChange}
+                selected={skillsRequired.map(skill => skill.skillName)}
+                className="input-form typeahead"
+              />
+              {errors.skillsRequired && <div className="error-message">{errors.skillsRequired}</div>}
+            </div>
 
 
             <div className="input-wrapper">
-      <Typeahead
-        id="experience"
-        options={yearsOptions}
-        placeholder="*Experience in Years"
-        onChange={(selected) => setExperience(selected[0] ? selected[0].label : '')}
-        selected={yearsOptions.filter(option => option.label === experience)}
-        className="input-form typeahead"
-        single
-      />
-      {!experience && errors.experience && (
-        <div className="error-message">{errors.experience}</div>
-      )}
-    </div>
- 
-    <div className="input-wrapper">
-        <Typeahead
-          id="preferredJobLocations"
-          multiple
-          options={cities}
-          placeholder="*Preferred Job Locations"
-          onChange={handlePreferredJobLocationsChange}
-          selected={preferredJobLocations}
-          className="input-form typeahead"
-        />
-        {errors.preferredJobLocations && <div className="error-message">{errors.preferredJobLocations}</div>}
-      </div>
-  
+              <Typeahead
+                id="experience"
+                options={yearsOptions}
+                placeholder="*Experience in Years"
+                onChange={(selected) => {
+                  const selectedValue = selected.length > 0 ? selected[0].label: '';
+                  setExperience(selectedValue); // always string
+                }}
+                selected={yearsOptions.filter(option => option.label === `${experience}`)}
+                className="input-form typeahead"
+                single
+                inputProps={{ readOnly: true }}   // Prevents manual typing
+                onInputChange={() => { }}         // Blocks input update
+                filterBy={() => true}
+              />
+              {!experience && errors.experience && (
+                <div className="error-message">{errors.experience}</div>
+              )}
+            </div>
+
+            <div className="input-wrapper">
+              <Typeahead
+                id="preferredJobLocations"
+                multiple
+                options={cities}
+                placeholder="*Preferred Job Locations"
+                onChange={handlePreferredJobLocationsChange}
+                selected={preferredJobLocations}
+                className="input-form typeahead"
+              />
+              {errors.preferredJobLocations && <div className="error-message">{errors.preferredJobLocations}</div>}
+            </div>
+
             <div className="input-wrapper" ></div>
           </div>
         );
@@ -801,128 +807,128 @@ delete transformedApplicantProfileDTO.skillsRequired;
               <div className="wrap-img flex2" >
                 <p><strong>Resume</strong></p>
                 <div id="upload-profile" style={{ display: 'flex', alignItems: 'center' }}>
-      <input
-        className="up-file"
-        id="tf-upload-img"
-        type="file"
-        name="profile"
-        required
-        onChange={handleResumeSelect}
-        style={{ display: 'none' }}
-      />
-      <div
-        id="resume-text-input-container"
-        onClick={triggerFileInputClick}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          width: '318.25px',
-          height: '47px',
-          borderRadius: '8px',
-          border: dragActive ? '2px dashed #000' : '1px solid #E5E5E5',
-          backgroundSize: '16px 16px',
-          paddingLeft: '40px',
-          padding: '10px',
-          marginRight: '20px',
-          boxSizing: 'border-box',
-          cursor: 'pointer',
-          position: 'relative',
-          width: '60%',
-          color: '#333',
-          background: 'transparent',
-          backgroundColor: '#F5F5F5',
-        }}
-      > 
-      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-<path d="M13.75 2H6.75C6.21957 2 5.71086 2.21071 5.33579 2.58579C4.96071 2.96086 4.75 3.46957 4.75 4V20C4.75 20.5304 4.96071 21.0391 5.33579 21.4142C5.71086 21.7893 6.21957 22 6.75 22H18.75C19.2804 22 19.7891 21.7893 20.1642 21.4142C20.5393 21.0391 20.75 20.5304 20.75 20V9L13.75 2Z" stroke="#9E9E9E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M13.75 2V9H20.75" stroke="#9E9E9E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-        <input
-          id="resume-text-input"
-          type="text"
-          
-          placeholder="Upload your resume"
-          value={selectedFile ? selectedFile.name : ''}
-          readOnly
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            background: 'transparent',
-            height: '40px', // adjust as needed
- 
-      paddingLeft: '20px',
-      paddingRight: '100px', // make room for button
-      boxSizing: 'border-box',
-      cursor: 'pointer',
-      backgroundColor: '#F5F5F5',
-      color: '#333',
-      fontSize: '15px',
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
-          }}
-        />
-      <button
-        type="button"
+                  <input
+                    className="up-file"
+                    id="tf-upload-img"
+                    type="file"
+                    name="profile"
+                    required
+                    onChange={handleResumeSelect}
+                    style={{ display: 'none' }}
+                  />
+                  <div
+                    id="resume-text-input-container"
+                    onClick={triggerFileInputClick}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '318.25px',
+                      height: '47px',
+                      borderRadius: '8px',
+                      border: dragActive ? '2px dashed #000' : '1px solid #E5E5E5',
+                      backgroundSize: '16px 16px',
+                      paddingLeft: '40px',
+                      padding: '10px',
+                      marginRight: '20px',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      width: '60%',
+                      color: '#333',
+                      background: 'transparent',
+                      backgroundColor: '#F5F5F5',
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                      <path d="M13.75 2H6.75C6.21957 2 5.71086 2.21071 5.33579 2.58579C4.96071 2.96086 4.75 3.46957 4.75 4V20C4.75 20.5304 4.96071 21.0391 5.33579 21.4142C5.71086 21.7893 6.21957 22 6.75 22H18.75C19.2804 22 19.7891 21.7893 20.1642 21.4142C20.5393 21.0391 20.75 20.5304 20.75 20V9L13.75 2Z" stroke="#9E9E9E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M13.75 2V9H20.75" stroke="#9E9E9E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <input
+                      id="resume-text-input"
+                      type="text"
 
-        onClick={(e) => {
+                      placeholder="Upload your resume"
+                      value={selectedFile ? selectedFile.name : ''}
+                      readOnly
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        background: 'transparent',
+                        height: '40px', // adjust as needed
 
-          e.stopPropagation();
-        
-          triggerFileInputClick();
-        
-        }}
-        
-        style={{
-        
-          position: 'absolute',     
-          top: '50%',   
-          right: '10px',
-          transform: 'translateY(-50%)',
-          backgroundColor: '#7E7E7E',
-          color: 'white',
-          padding: '10px 15px',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          textTransform: 'none',
-        }}
-      >
-        Browse
-      </button>
-      </div>
+                        paddingLeft: '20px',
+                        paddingRight: '100px', // make room for button
+                        boxSizing: 'border-box',
+                        cursor: 'pointer',
+                        backgroundColor: '#F5F5F5',
+                        color: '#333',
+                        fontSize: '15px',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      }}
+                    />
+                    <button
+                      type="button"
 
-    </div>
- {errorMessage && (
-    <div style={{ color: 'red', marginTop: '10px' }}>
-      {errorMessage}
-    </div>
-  )}
+                      onClick={(e) => {
+
+                        e.stopPropagation();
+
+                        triggerFileInputClick();
+
+                      }}
+
+                      style={{
+
+                        position: 'absolute',
+                        top: '50%',
+                        right: '10px',
+                        transform: 'translateY(-50%)',
+                        backgroundColor: '#7E7E7E',
+                        color: 'white',
+                        padding: '10px 15px',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        textTransform: 'none',
+                      }}
+                    >
+                      Browse
+                    </button>
+                  </div>
+
+                </div>
+                {errorMessage && (
+                  <div style={{ color: 'red', marginTop: '10px' }}>
+                    {errorMessage}
+                  </div>
+                )}
               </div>
               <br></br>
               <br></br>
               <ModalWrapper1 isOpen={isModalOpen} onClose={closeModal} title="Build Your Resume">
-        <ResumeBuilder />
-      </ModalWrapper1>
-      {error && <div className="error-message">{error}</div>}
-              
+                <ResumeBuilder />
+              </ModalWrapper1>
+              {error && <div className="error-message">{error}</div>}
 
-              
+
+
               <ModalComponent
-          isOpen={isModalOpen}
-          onRequestClose={() => setIsModalOpen(false)}
-          loginUrl={loginUrl}
-        />
+                isOpen={isModalOpen}
+                onRequestClose={() => setIsModalOpen(false)}
+                loginUrl={loginUrl}
+              />
             </div>
           </div>
         );
     }
   };
-  
-  
-  
+
+
+
 
   const Stepper = ({ currentStage }) => {
     return (
@@ -931,15 +937,13 @@ delete transformedApplicantProfileDTO.skillsRequired;
           <div key={i} className="step-item">
             {i !== 0 && (
               <div
-                className={`step-line ${
-                  currentStage > i  ? 'completed' : ''
-                }`}
+                className={`step-line ${currentStage > i ? 'completed' : ''
+                  }`}
               ></div>
             )}
             <div
-              className={`step-circle ${
-                currentStage === i + 1 ? 'active' : ''
-              } ${currentStage > i + 1 ? 'completed' : ''}`}
+              className={`step-circle ${currentStage === i + 1 ? 'active' : ''
+                } ${currentStage > i + 1 ? 'completed' : ''}`}
             >
               {currentStage > i + 1 ? '✔' : i + 1}
             </div>
@@ -949,7 +953,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
       </div>
     );
   };
-  
+
   if (loading) {
     return (
       <div className="spinner-container">
@@ -961,40 +965,40 @@ delete transformedApplicantProfileDTO.skillsRequired;
 
   return (
     <div class="component">
-       
+
       <img className="top-left-svg" src={Logo} alt="Image" usemap="#image-map" />
 
-    
-    <div className="card-container">
-    <div className="card1">
-      <div className="header">
-        <p className="form-title">Complete Your Profile</p>
-        <p>Fill the form fields to go to the next step</p>
-      </div>
-      <div className="stepper-container">
-        <Stepper currentStage={currentStage} />
-      </div>
-      <div className="form-container">
-        <form onSubmit={handleSubmit} className="applicant-details-form">
-          <div className="row">
-            {renderStageFields()}
+
+      <div className="card-container">
+        <div className="card1">
+          <div className="header">
+            <p className="form-title">Complete Your Profile</p>
+            <p>Fill the form fields to go to the next step</p>
           </div>
-          <div className="button-container">
-            {(currentStage > 1 && currentStage < 3) && (
-              <button type="button" onClick={handleBack} className="form-button1">Back</button>
-            )}
-            {currentStage < 3 && (
-              <button type="button" onClick={handleNext} className="form-button" >Next</button>
-            )}
-            {currentStage === 3 && (
-              <button type="submit" className="form-button">Submit</button>
-            )}
+          <div className="stepper-container">
+            <Stepper currentStage={currentStage} />
           </div>
-        </form>
+          <div className="form-container">
+            <form onSubmit={handleSubmit} className="applicant-details-form">
+              <div className="row">
+                {renderStageFields()}
+              </div>
+              <div className="button-container">
+                {(currentStage > 1 && currentStage < 3) && (
+                  <button type="button" onClick={handleBack} className="form-button1">Back</button>
+                )}
+                {currentStage < 3 && (
+                  <button type="button" onClick={handleNext} className="form-button" >Next</button>
+                )}
+                {currentStage === 3 && (
+                  <button type="submit" className="form-button">Submit</button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
-    </div>
-    </div>
-    {snackbars.map((snackbar, index) => (
+      {snackbars.map((snackbar, index) => (
         <Snackbar
           key={index}
           index={index}

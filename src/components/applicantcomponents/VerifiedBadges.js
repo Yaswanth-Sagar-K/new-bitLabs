@@ -264,7 +264,7 @@ const VerifiedBadges = () => {
     };
 
     fetchTestData();
-    if(testData === ''){
+    if(testData === null){
       fetchTestData();
     }
   }, [user.id]);
@@ -320,9 +320,9 @@ const VerifiedBadges = () => {
             aptitudeTest.testDateTime[5] // Seconds
           );
           const retakeDate = new Date(testDateTime);
-          retakeDate.setDate(retakeDate.getDate() + 7); // Set the retake date to 7 days later
-            retakeDate.setHours(retakeDate.getHours() + 5); // Add 5 hours
-            retakeDate.setMinutes(retakeDate.getMinutes() + 30); // Add 30 minutes
+          retakeDate.setDate(retakeDate.getDate() + 0); // Set retake date to 7 days later
+          retakeDate.setHours(retakeDate.getHours() + 5); // Add 5 hours
+          retakeDate.setMinutes(retakeDate.getMinutes() + 40); // Add 30 minutes
     
           const calculateTimeLeft = () => {
             const now = new Date();
@@ -784,19 +784,19 @@ const VerifiedBadges = () => {
   )}
   {timer.days > 0 && 'd '}
   
-  {timer.hours > -1 && (
+  {timer.hours > 0 && (
     <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.hours}</span>
   )}
-  {timer.hours > -1 && 'h '}
+  {timer.hours > 0 && 'h '}
   
   {timer.minutes > 0 && (
     <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.minutes}</span>
   )}
   {timer.minutes > 0 && 'm'}
-  {timer.seconds > 0 && timer.hours === 0 && timer.days === 0 && (
+  {timer.seconds > 0 && timer.hours === 0 && (
     <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.seconds}</span>
   )}
-  {timer.seconds > 0 && timer.hours === 0 && timer.days === 0 && 'sec'}
+  {timer.seconds > 0 && timer.hours === 0 && 'sec'}
 </div>
         </div>
       )}
