@@ -95,9 +95,9 @@ const SkillBadgeCard = ({ skillName, status, badgeIcon, retakeTest, testFailedAt
   );
       
       // Calculate the total 7 days (or 168 hours) from the failure time
-      // const futureTime = new Date(failedDate.getTime() + 7 * 24 * 60 * 60 * 1000 + (5 * 60 * 60 * 1000) + (30 * 60 * 1000));
-      const futureTime = new Date(failedDate.getTime() + 1000);
-      
+      const futureTime = new Date(failedDate.getTime() + 1 * 24 * 60 * 60 * 1000 + (5 * 60 * 60 * 1000) + (30 * 60 * 1000));
+
+
 
       const calculateTimeLeft = () => {
         const currentTime = new Date();
@@ -264,9 +264,6 @@ const VerifiedBadges = () => {
     };
 
     fetchTestData();
-    if(testData === null){
-      fetchTestData();
-    }
   }, [user.id]);
 
   useEffect(() => {
@@ -275,6 +272,7 @@ const VerifiedBadges = () => {
         // Assuming JWT token is stored in localStorage
         const jwtToken = localStorage.getItem('jwtToken'); // Retrieve from localStorage
         console.log(jwtToken);
+
         const skillBadgesResponse = await axios.get(`${apiUrl}/skill-badges/${userId}/skill-badges`, {
           headers: {
             Authorization: `Bearer ${jwtToken}`, // Pass the JWT token in headers
@@ -322,17 +320,17 @@ const VerifiedBadges = () => {
           const retakeDate = new Date(testDateTime);
           retakeDate.setDate(retakeDate.getDate() + 0); // Set retake date to 7 days later
           retakeDate.setHours(retakeDate.getHours() + 5); // Add 5 hours
-          retakeDate.setMinutes(retakeDate.getMinutes() + 40); // Add 30 minutes
+          retakeDate.setMinutes(retakeDate.getMinutes() + 30); // Add 30 minutes
     
           const calculateTimeLeft = () => {
             const now = new Date();
             const difference = retakeDate - now;
+    
             if (difference > 0) {
               const timeLeft = {
-                 days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                  hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                  minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-                  seconds: Math.floor((difference % (1000 * 60)) / 1000),
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
               };
               setTimer(timeLeft);
               setIsTimerComplete(false); // Timer is still counting down
@@ -385,7 +383,6 @@ const VerifiedBadges = () => {
                   days: Math.floor(difference / (1000 * 60 * 60 * 24)),
                   hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
                   minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-                  seconds: Math.floor((difference % (1000 * 60)) / 1000),
                 };
                 setTimer(timeLeft);
                 setIsTimerComplete(false); // Timer is still counting down
@@ -483,7 +480,7 @@ const VerifiedBadges = () => {
 
  // Update button state based on the presence of the timer and current step
  useEffect(() => {
-  console.log(`currentStep: ${currentStep}, timer: ${JSON.stringify(timer)}`); // Debugging statement
+  console.log(`currentStep: ${currentStep}, timer: ${timer}`); // Debugging statement
   if (timer) {
     if (currentStep === 1 || currentStep === 2) {
       console.log("Timer present, disabling button"); // Debugging statement
@@ -768,7 +765,7 @@ const VerifiedBadges = () => {
         style={buttonStyle()}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={!isDisabled ? () => handleTakeTest('General Aptitude Test') : null } // Conditionally add onClick
+        onClick={!isDisabled ? () => handleTakeTest('General Aptitude Test') : null} // Conditionally add onClick
       >
         <span style={spanStyle}>
       {isDisabled ? 'Retake test' : 'Take Test'} {/* Conditionally change button text */}
@@ -793,10 +790,6 @@ const VerifiedBadges = () => {
     <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.minutes}</span>
   )}
   {timer.minutes > 0 && 'm'}
-  {timer.seconds > 0 && timer.hours === 0 && (
-    <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.seconds}</span>
-  )}
-  {timer.seconds > 0 && timer.hours === 0 && 'sec'}
 </div>
         </div>
       )}
@@ -860,10 +853,6 @@ const VerifiedBadges = () => {
     }}>{timer.minutes}</span>
   )}
   {timer.minutes > 0 && 'm'}
-  {timer.seconds > 0 && timer.minutes === 0 && (
-    <span style={{ fontWeight: '700', fontSize: 'clamp(15px, 2vw, 20px)' }}>{timer.seconds}</span>
-  )}
-  {timer.seconds > 0 && timer.minutes === 0 && 'sec'}
 </div>
         </div>
       )}

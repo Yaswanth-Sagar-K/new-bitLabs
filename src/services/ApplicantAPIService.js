@@ -12,10 +12,6 @@ import axios from 'axios';
 
     //  export const apiUrl = 'https://g23jza8mtp.ap-south-1.awsapprunner.com';
 
-    //  export const apiUrl = 'http://192.168.1.60:8081';
-
-
-
 
 const ApplicantAPIService = {
 }
