@@ -81,6 +81,11 @@ function RecruiterAllApplicants() {
   const [FilterData, setFilterData] = useState([]);
   const [appliedFilter,setAppliedFilter]=useState(false);
   const navigate = useNavigate();
+  const [showReasonModal, setShowReasonModal] = useState(false);
+const [reason, setReason] = useState("");
+const statusOrder = ["Screening", "Shortlisted", "Interviewing", "Selected", "Rejected"];
+
+
  
   const recordsPerPage = 10;
  
@@ -314,6 +319,43 @@ const m=new Map();
       }
     });
   };
+
+  const getSelectedStatus = () => {
+  if (selectedApplicants.length === 0) return null;
+  const firstSelectedApp = currentRecords.find(app =>
+    selectedApplicants.includes(app.applyjobid)
+  );
+  return firstSelectedApp ? firstSelectedApp.applicantStatus : null;
+};
+
+  
+//   const handleCheckboxChange2 = (applyjobid) => {
+//   // Set the current page mapping
+//   m.set(currentPage, applyjobid);
+
+//   const selectedApp = currentRecords.find(app => app.applyjobid === applyjobid);
+//   if (!selectedApp) return;
+
+//   const status = selectedApp.applicantStatus;
+
+//   setSelectedApplicants((prevSelected) => {
+//     if (prevSelected.includes(applyjobid)) {
+//       const updated = prevSelected.filter((id) => id !== applyjobid);
+      
+//       // If no other checkboxes remain selected, clear selectedStatus
+//       if (updated.length === 0) {
+//         setSelectedCheckBoxStatus(null);
+//       }
+
+//       return updated;
+//     } else {
+//       setSelectedCheckBoxStatus(status); // Set the selected status based on first selection
+//       return [...prevSelected, applyjobid];
+//     }
+//   });
+// };
+
+  
   const handleSelectAll = (event) => {
     const isChecked = event.target.checked;
     if (isChecked) {
@@ -1152,12 +1194,14 @@ const handleTextFieldChange = (id, value) => {
     const tableSelectedCheckBoxes1=localStorage.getItem('tableSelectedCheckBoxes');
     const savedSelectedColoumns=localStorage.getItem('tableSelectedColumns');
     try {
+      const jwtToken = localStorage.getItem('jwtToken')
       if(!flagForProfileBack){
        if(tableSelectedCheckBoxes1){
         setSelectedCheckboxes(JSON.parse(tableSelectedCheckBoxes1));
         setSelectedColumns(JSON.parse(savedSelectedColoumns));
        }
-      const response = await axios.get(`${apiUrl}/applyjob/recruiter/${user.id}/appliedapplicants`);
+      const response = await axios.get(`${apiUrl}/applyjob/recruiter/${user.id}/appliedapplicants`
+      );
        applicantsArray = Object.values(response.data).flat();
       setCount(applicantsArray.length);
       setApplicants(applicantsArray);
@@ -1431,59 +1475,86 @@ const handleTextFieldChange = (id, value) => {
         break;
     }
   };
-const handleSelectChange = async (e) => {
+
+const getCurrentMaxStatusIndex = () => {
+  const selectedStatuses = applicants
+    .filter((app) => selectedApplicants.includes(app.applyjobid))
+    .map((app) => app.applicantStatus);
+
+  const highestIndex = Math.max(
+    ...selectedStatuses.map((status) => statusOrder.indexOf(status))
+  );
+
+  return highestIndex;
+};
+
+ 
+const handleSelectChange = (e) => {
   const newStatus = e.target.value;
-  if(selectedApplicants.length === 0){
-    setSnackbar({open:true , message:'Please select atleast one applicant',type:'error'})
+ 
+  if (selectedApplicants.length === 0) {
+    setSnackbar({ open: true, message: 'Please select at least one applicant', type: 'error' });
     return;
-     }
-  try {
-    if (selectedApplicants.length > 0 && newStatus) {
-      console.log("Selected Applicants:", selectedApplicants);
-      const updatePromises = selectedApplicants.map(async (selectedApplicant) => {
-        const applyJobId = selectedApplicant;
-        console.log("Apply Job ID:", applyJobId);
-        if (!applyJobId) {
-          console.error("applyjobid is undefined or null for:", selectedApplicant);
-          return null;
-        }
- 
-        const response = await axios.put(
-          `${apiUrl}/applyjob/recruiters/applyjob-update-status/${applyJobId}/${newStatus}`
-        );
-        return { applyJobId, newStatus };
-      });
- 
-      const updatedResults = await Promise.all(updatePromises);
- 
-      const filteredResults = updatedResults.filter(result => result !== null);
-     
-      if (isMounted.current) {
-        const updatedApplicants = applicants.map((application) => {
-          const updatedResult = filteredResults.find(result => result.applyJobId === application.applyjobid);
-          if (updatedResult) {
-            return { ...application, applicantStatus: updatedResult.newStatus };
-          }
-          return application;
-        });
-        setApplicants(updatedApplicants);
-        setSelectedStatus(newStatus);
-        setSelectedStatus("");
-        setSelectedApplicants([]);
-      }
-     
-     
-      const applicantCount = selectedApplicants.length;
-const applicantLabel = applicantCount === 1 ? 'applicant' : 'applicants';
-const message1 = `Status changed to ${newStatus} for ${applicantCount} ${applicantLabel}`;
-
-
-setSnackbar({ open: true, message: message1, type: 'success' });
-     
-    }
-  } catch (error) {
-    console.error('Error updating status:', error);
   }
+ 
+  // If feedback status selected, open modal and store status
+  if (newStatus === "Rejected" || newStatus === "Selected") {
+    setSelectedStatus(newStatus); // store status for use after feedback
+    setShowReasonModal(true);     // open modal
+    return;
+  }
+ 
+  // For other statuses, update directly
+  updateApplicantStatus(newStatus);
+};
+const updateApplicantStatus = async (status, reason = null) => {
+  try {
+    const updatePromises = selectedApplicants.map(async (applyJobId) => {
+      const response = await axios.put(
+        `${apiUrl}/applyjob/recruiters/applyjob-update-status/${applyJobId}`,
+        { newStatus: status, reason: reason || null }
+      );
+      return { applyJobId, newStatus: status }; // Return data for updating UI
+    });
+ 
+    const updatedResults = await Promise.all(updatePromises);
+ 
+    // Update UI like in your previous commented version
+    const updatedApplicants = applicants.map((application) => {
+      const updatedResult = updatedResults.find(
+        (result) => result.applyJobId === application.applyjobid
+      );
+      if (updatedResult) {
+        return { ...application, applicantStatus: updatedResult.newStatus };
+      }
+      return application;
+    });
+ 
+    setApplicants(updatedApplicants); // ✅ this ensures UI reflects new status
+ 
+    setSnackbar({
+      open: true,
+      message: `Status updated to ${status} for ${selectedApplicants.length} applicant(s)`,
+      type: 'success',
+    });
+ 
+    setSelectedStatus("");
+    setSelectedApplicants([]);
+    setReason("");
+    setShowReasonModal(false);
+  } catch (err) {
+    console.error("Status update error:", err);
+    setSnackbar({ open: true, message: 'Error updating status', type: 'error' });
+  }
+};
+ 
+const handleSendFeedback = () => {
+  if (!reason.trim()) {
+    setSnackbar({ open: true, message: 'Please provide a reason', type: 'error' });
+    return;
+  }
+ 
+  updateApplicantStatus(selectedStatus, reason);
 };
  
  
@@ -1742,6 +1813,101 @@ const exportCSV = () => {
    
     return (
       <div className="dashboard__content">
+       {showReasonModal && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9999,
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: 'white',
+        padding: '24px',
+        borderRadius: '8px',
+        width: '600px',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+        position: 'relative',
+      }}
+    >
+      <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>Send Feedback</h3>
+ 
+      {/* Close Button (X) */}
+      <button
+        onClick={() => setShowReasonModal(false)}
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          background: 'transparent',
+          border: 'none',
+          fontSize: '18px',
+          cursor: 'pointer',
+        }}
+      >
+        ×
+      </button>
+ 
+      <textarea
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder="Type here..."
+        style={{
+          width: '100%',
+          height: '100px',
+          borderRadius: '10px',
+          border: '1px solid #ddd',
+          padding: '12px',
+          fontSize: '14px',
+          resize: 'none',
+          marginBottom: '20px',
+          backgroundColor: 'white',
+        }}
+      />
+ 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+        <button
+          onClick={() => setShowReasonModal(false)}
+          style={{
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            color: '#555',
+            padding: '8px 14px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            textTransform: 'capitalize',
+          }}
+        >
+          cancel
+        </button>
+ 
+        <button
+          onClick={handleSendFeedback}
+          style={{
+            backgroundColor: '#f36f21', // orange button
+            color: 'white',
+            padding: '8px 14px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            textTransform: 'capitalize',
+          }}
+        >
+          Send Feedback
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+ 
         <section className="page-title-dashboard">
         <div>
             <div>
@@ -1783,11 +1949,18 @@ const exportCSV = () => {
             <option value="" disabled hidden>
                 Change Status
             </option>
-            <option value="Screening">Screening</option>
-            <option value="Shortlisted">Shortlisted</option>
-            <option value="Interviewing">Interviewing</option>
-            <option value="Selected">Selected</option>
-            <option value="Rejected">Rejected</option>
+            {(() => {
+    if (selectedApplicants.length === 0) return null;
+    const minStatusIndex = getCurrentMaxStatusIndex();
+
+    return statusOrder
+      .slice(minStatusIndex + 1) // Show only later statuses
+      .map((status) => (
+        <option key={status} value={status}>
+          {status}
+        </option>
+      ));
+  })()}
             </select>
             </div>
           <div className="themes-container">
@@ -2820,6 +2993,16 @@ const exportCSV = () => {
                                   checked={selectedApplicants.includes(application.applyjobid)}
                                   onChange={() => handleCheckboxChange2(application.applyjobid)}
                                   name={`applicantCheckbox-${application.applyjobid}`}
+                                   disabled={
+    (() => {
+      const selectedCheckBoxStatus = getSelectedStatus();
+      return (
+        selectedApplicants.length > 0 &&
+        !selectedApplicants.includes(application.applyjobid) &&
+        application.applicantStatus !== selectedCheckBoxStatus
+      );
+    })()
+  }
                                 />
                               </td>
                      
@@ -2851,7 +3034,7 @@ const exportCSV = () => {
 
         {/* Tooltip */}
         {tooltipVisibleId === index && (  // Only show tooltip if hovered
-          <div
+          <div 
             style={{
               position: 'absolute',
               top: index === currentRecords.length - 1 ? '-60px' : '25px',
