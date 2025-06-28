@@ -43,6 +43,7 @@ const Recruiterviewapplicant = () => {
   const [applicants, setApplicants] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', type: '' });
   const [matchScore, setMatchScore] = useState(0);
+  const statusOrder = ["Screening", "Shortlisted", "Interviewing", "Selected", "Rejected"];
 const [applicants1, setApplicants1] = useState({
   matchedSkills: [],
   missingSkills: [],
@@ -200,35 +201,36 @@ useEffect(() => {
   const jobid = query.get('jobid');
   const  applicantId= query.get('appid');
   const  applyid= query.get('applyid');
+  const appstatus = query.get('appstatus')
   const isPreScreened = query.get('preScreened') === 'true';
 
 
 
-  const fetchResume = async () => {
-    try {
-      console.log('Making resume API call...');
-      const token = localStorage.getItem('jwtToken');
-      const resumeResponse = await axios.get(`${apiUrl}/applicant/getResumeId/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include JWT token
-        },
-      });
-      console.log('Resume API call response:', resumeResponse);
+  // const fetchResume = async () => {
+  //   try {
+  //     console.log('Making resume API call...');
+  //     const token = localStorage.getItem('jwtToken');
+  //     const resumeResponse = await axios.get(`${apiUrl}/applicant/getResumeId/${id}`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`, // Include JWT token
+  //       },
+  //     });
+  //     console.log('Resume API call response:', resumeResponse);
  
-      if (resumeResponse.data) {
-        const firstName = profileData?.basicDetails?.firstName || '';
-        const lastName = profileData?.basicDetails?.lastName || '';
-        const fileName = `${firstName}_${lastName}.pdf`;
-        setResumeFileName(fileName);
-      } else {
-        console.error('No resume fileName found:', resumeResponse.data);
-      }
-    } catch (error) {
-      console.error('Error fetching resume:', error);
-    }
-  };
+  //     if (resumeResponse.data) {
+  //       const firstName = profileData?.basicDetails?.firstName || '';
+  //       const lastName = profileData?.basicDetails?.lastName || '';
+  //       const fileName = `${firstName}_${lastName}.pdf`;
+  //       setResumeFileName(fileName);
+  //     } else {
+  //       console.error('No resume fileName found:', resumeResponse.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching resume:', error);
+  //   }
+  // };
  
-    fetchResume();
+  //   fetchResume();
  
  
   const fetchActiveJob = async () => {
@@ -300,7 +302,8 @@ useEffect(() => {
  
   const handleResumeClick1 = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/resume/pdf/${id}`, { responseType: 'blob' });
+      const jwtToken = localStorage.getItem('jwtToken')
+      const response = await axios.get(`${apiUrl}/applicant-pdf/getresume/${id}`, { responseType: 'blob' });
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -427,6 +430,7 @@ useEffect(() => {
       }
     }
   }, [id, jobid]);
+
 
   const handleSelectChange1 = async (e) => {
     const newStatus = e.target.value;
@@ -617,11 +621,26 @@ useEffect(() => {
                   <option value="" disabled hidden>
                     Change Status
                   </option>
-                  <option value="Screening">Screening</option>
-                  <option value="Shortlisted">Shortlisted</option>
-                  <option value="Interviewing">Interviewing</option>
-                  <option value="Selected">Selected</option>
-                  <option value="Rejected">Rejected</option>
+                 {(() => {
+  if (!appstatus) return null;
+
+  const currentStatusIndex = statusOrder.indexOf(appstatus);
+  let nextStatuses = statusOrder.slice(currentStatusIndex + 1);
+
+  // Enforce mutually exclusive final statuses
+  if (appstatus === "Selected") {
+    nextStatuses = nextStatuses.filter((status) => status !== "Rejected");
+  } else if (appstatus === "Rejected") {
+    nextStatuses = nextStatuses.filter((status) => status !== "Selected");
+  }
+
+  return nextStatuses.map((status) => (
+    <option key={status} value={status}>
+      {status}
+    </option>
+  ));
+})()}
+
                 </select>
               </span>
             </div>

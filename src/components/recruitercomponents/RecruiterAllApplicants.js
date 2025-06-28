@@ -1949,18 +1949,35 @@ const exportCSV = () => {
             <option value="" disabled hidden>
                 Change Status
             </option>
-            {(() => {
-    if (selectedApplicants.length === 0) return null;
-    const minStatusIndex = getCurrentMaxStatusIndex();
+           {(() => {
+  if (selectedApplicants.length === 0) return null;
 
-    return statusOrder
-      .slice(minStatusIndex + 1) // Show only later statuses
-      .map((status) => (
-        <option key={status} value={status}>
-          {status}
-        </option>
-      ));
-  })()}
+  const minStatusIndex = getCurrentMaxStatusIndex();
+  let nextStatuses = statusOrder.slice(minStatusIndex + 1);
+
+  // Get actual current statuses of selected applicants
+  const selectedStatuses = applicants
+    .filter((app) => selectedApplicants.includes(app.applyjobid))
+    .map((app) => app.applicantStatus);
+
+  const hasSelected = selectedStatuses.includes("Selected");
+  const hasRejected = selectedStatuses.includes("Rejected");
+
+  // Enforce mutually exclusive final statuses
+  if (hasSelected) {
+    nextStatuses = nextStatuses.filter((status) => status !== "Rejected");
+  } else if (hasRejected) {
+    nextStatuses = nextStatuses.filter((status) => status !== "Selected");
+  }
+
+  return nextStatuses.map((status) => (
+    <option key={status} value={status}>
+      {status}
+    </option>
+  ));
+})()}
+
+
             </select>
             </div>
           <div className="themes-container">
@@ -3010,8 +3027,8 @@ const exportCSV = () => {
   <Link
   to={
     application.preScreenedCondition === 'PreScreened'
-      ? `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}&preScreened=true`
-      : `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}`
+      ? `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}&appstatus=${application.applicantStatus}&preScreened=true`
+      : `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}&appstatus=${application.applicantStatus}`
   }
   style={{ color: '#0583D2', textDecoration: 'none', position: 'relative' }}
 >
