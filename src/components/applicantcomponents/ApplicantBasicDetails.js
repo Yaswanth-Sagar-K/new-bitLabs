@@ -31,6 +31,7 @@ const ApplicantBasicDetails = () => {
   const [shouldBeHidden, setShouldBeHidden] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [resumeUploaded, setResumeUploaded] = useState(false);
   const [applicant, setApplicant] = useState({
     firstName: '',
     lastName: '',
@@ -142,7 +143,7 @@ const handlePreferredJobLocationsChange = (selected) => {
   const [loginUrl, setLoginUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const steps = ['Personal Information', 'Professional Details', 'Upload Resume'];
-  const yearsOptions = Array.from({ length: 16 }, (_, i) => ({ label: `${i} ` }));
+  const yearsOptions = Array.from({ length: 16 }, (_, i) => ({ label: `${i}` }));
 
   const qualificationsOptions = ['B.Tech', 'MCA', 'Degree', 'Intermediate', 'Diploma'];
   const skillsOptions = ['Java', 'C', 'C++', 'C Sharp', 'Python', 'HTML', 'CSS', 'JavaScript', 'TypeScript', 'Angular', 'React', 'Vue', 'JSP', 'Servlets', 'Spring', 'Spring Boot', 'Hibernate', '.Net', 'Django', 'Flask', 'SQL', 'MySQL', 'SQL-Server', 'Mongo DB', 'Selenium', 'Regression Testing', 'Manual Testing'];
@@ -381,6 +382,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
         addSnackbar({ message: 'File size should be less than 5MB and Only PDF allowed.', type: 'error' });
         setErrorMessage('File size should be less than 5MB and Only PDF allowed.');
         setSelectedFile(null);
+        setResumeUploaded(false);
         return;
       }
   
@@ -389,15 +391,16 @@ delete transformedApplicantProfileDTO.skillsRequired;
         addSnackbar({ message: 'Only PDF file types are allowed.', type: 'error' });
         setErrorMessage('Only PDF file types are allowed.');
         setSelectedFile(null);
+        setResumeUploaded(false);
         return;
       }
   
       setErrorMessage('');
       setResumeFile(file);
       setSelectedFile(file);
+      setResumeUploaded(true);
     }
   };
-  
   
   
   const triggerFileInputClick = () => {
@@ -733,6 +736,9 @@ delete transformedApplicantProfileDTO.skillsRequired;
           onChange={handleQualificationChange}
           selected={qualification ? [qualification] : []}
           className="input-form typeahead"
+          inputProps={{ readOnly: true }}   
+        onInputChange={() => {}}        
+        filterBy={() => true}  
         />
         {errors.qualification && <div className="error-message">{errors.qualification}</div>}
       </div>
@@ -745,6 +751,9 @@ delete transformedApplicantProfileDTO.skillsRequired;
           onChange={handleSpecializationChange}
           selected={specialization ? [specialization] : []}
           className="input-form typeahead"
+          inputProps={{ readOnly: true }}   
+        onInputChange={() => {}}        
+        filterBy={() => true}  
         />
         {errors.specialization && <div className="error-message">{errors.specialization}</div>}
       </div>
@@ -768,10 +777,17 @@ delete transformedApplicantProfileDTO.skillsRequired;
         id="experience"
         options={yearsOptions}
         placeholder="*Experience in Years"
-        onChange={(selected) => setExperience(selected[0] ? selected[0].label : '')}
-        selected={yearsOptions.filter(option => option.label === experience)}
+        onChange={(selected) => {
+                  const selectedValue = selected.length > 0 ? selected[0].label : '';
+                  setExperience(selectedValue); // always string
+                }}
+                selected={yearsOptions.filter(option => option.label === `${experience}`)}
         className="input-form typeahead"
         single
+        inputProps={{ readOnly: true }}   
+        onInputChange={() => {}}        
+        filterBy={() => true}  
+ 
       />
       {!experience && errors.experience && (
         <div className="error-message">{errors.experience}</div>
@@ -782,11 +798,14 @@ delete transformedApplicantProfileDTO.skillsRequired;
         <Typeahead
           id="preferredJobLocations"
           multiple
-          options={cities}
+          options={cities.filter(city => !preferredJobLocations.includes(city))}
           placeholder="*Preferred Job Locations"
           onChange={handlePreferredJobLocationsChange}
           selected={preferredJobLocations}
           className="input-form typeahead"
+          inputProps={{ readOnly: true }}   
+        onInputChange={() => {}}        
+        filterBy={() => true}  
         />
         {errors.preferredJobLocations && <div className="error-message">{errors.preferredJobLocations}</div>}
       </div>
@@ -987,8 +1006,19 @@ delete transformedApplicantProfileDTO.skillsRequired;
               <button type="button" onClick={handleNext} className="form-button" >Next</button>
             )}
             {currentStage === 3 && (
-              <button type="submit" className="form-button">Submit</button>
-            )}
+  <button
+    type="submit"
+    className="form-button"
+    disabled={!resumeUploaded}
+    style={{
+      opacity: resumeUploaded ? 1 : 0.6,
+      cursor: resumeUploaded ? 'pointer' : 'not-allowed',
+    }}
+  >
+    Submit
+  </button>
+)}
+
           </div>
         </form>
       </div>
