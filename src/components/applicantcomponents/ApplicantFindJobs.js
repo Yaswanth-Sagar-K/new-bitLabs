@@ -29,7 +29,7 @@ const addSnackbar = (snackbar) => {
 };
 
 // Fetch jobs only when profile ID is available
-const fetchJobs = async (pageNum = 0, profileId = profileid1) => {
+const fetchJobs = async (pageNum, profileId = profileid1) => {
   if (!profileId) return; // Avoid fetching if profileId is not available
 
   setLoading(true);
@@ -64,7 +64,7 @@ const fetchJobs = async (pageNum = 0, profileId = profileid1) => {
 
 
 // Fetch profile ID only if it's not already set
-const fetchProfileId = async () => {
+const fetchProfileId = async (pageToLoad) => {
   if (profileid1) return; // Prevent re-fetching if profileId is already set
 
   try {
@@ -73,7 +73,7 @@ const fetchProfileId = async () => {
     });
     setProfileId(profileRes.data); // Set profile ID
     fetchJobCount(); // Fetch the total job count after setting profile ID
-    fetchJobs(0, profileRes.data); // Fetch the first page of jobs
+    fetchJobs(pageToLoad, profileRes.data); // Fetch the first page of jobs
   } catch (error) {
     console.error("Error fetching profile ID:", error);
   }
@@ -95,11 +95,32 @@ const fetchJobCount = async () => {
 
 // Fetch profile ID and jobs when JWT token or profile ID changes
 useEffect(() => {
-  if (jwtToken) {
-    localStorage.setItem("jwtToken", jwtToken);
-    fetchProfileId();
-  }
-}, [jwtToken]); // Only run when jwtToken changes
+  if (!jwtToken) return;
+
+  localStorage.setItem("jwtToken", jwtToken);
+
+  const savedPage = sessionStorage.getItem("lastViewedPage");
+  const pageToLoad = savedPage ? parseInt(savedPage, 10) : 0;
+
+  const getProfileAndJobs = async () => {
+    try {
+      const profileRes = await axios.get(`${apiUrl}/applicantprofile/${userId}/profileid`, {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+      });
+
+      const profileIdFetched = profileRes.data;
+      setProfileId(profileIdFetched);
+
+      await fetchJobCount(); // total pages
+      await fetchJobs(pageToLoad, profileIdFetched); // ✅ correct page
+      sessionStorage.removeItem("lastViewedPage");
+    } catch (error) {
+      console.error("Error initializing jobs:", error);
+    }
+  };
+
+  getProfileAndJobs();
+}, [jwtToken]);
 
 // Handle page change
 const handlePreviousPage = () => {
@@ -124,6 +145,7 @@ const handlePageClick = (pageNum) => {
   
       // Remove the job from the UI without reloading
       setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
+
   
       addSnackbar({ 
         message: "Job saved successfully.", 
@@ -145,6 +167,7 @@ const handlePageClick = (pageNum) => {
  
 
   const handleApplyNowClickView = (jobId) => {
+    sessionStorage.setItem("lastViewedPage", page);
     setSelectedJobId(jobId);
     navigate('/applicant-view-job', { state: { from: location.pathname } });
   };

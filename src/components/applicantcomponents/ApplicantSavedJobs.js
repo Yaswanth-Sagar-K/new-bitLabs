@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import axios from 'axios';
 import { apiUrl } from '../../services/ApplicantAPIService';
 import { useUserContext } from '../common/UserProvider';
@@ -16,10 +16,11 @@ function ApplicantSavedJobs({ setSelectedJobId }) {
   const location = useLocation();
     const [size, setSize] = useState(10) // Set the size of jobs per request
     const [savedJobs, setSavedJobs] = useState([]);
-    const [savedJobsPage, setSavedJobsPage] = useState(1);
+    const [savedJobsPage, setSavedJobsPage] = useState(0);
     const [totalSavedJobs, setTotalSavedJobs] = useState(0);
     const [totalSavedPages, setTotalSavedPages] = useState(0);
     const [savedHasMore, setSavedHasMore] = useState(true);
+    const initialPageRef = useRef(false); 
    
     const jwtToken = user.data.jwt;
  
@@ -84,10 +85,21 @@ setJobs(newJobs);
   };
  
   // Fetch Saved Jobs on Component Mount
-  useEffect(() => {
-    fetchSavedJobCount();
-    fetchSavedJobs();
-  }, [applicantId]);
+useEffect(() => {
+   if (!applicantId || !jwtToken || initialPageRef.current) return;
+
+  initialPageRef.current = true;
+
+  const savedPage = sessionStorage.getItem("savedJobsLastPage");
+  const pageToLoad = savedPage ? parseInt(savedPage, 10) : 0;
+
+  fetchSavedJobCount();
+  fetchSavedJobs(pageToLoad);
+
+  sessionStorage.removeItem("savedJobsLastPage");
+}, [applicantId, jwtToken]);
+
+
  
   function formatDate(dateString) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -137,6 +149,8 @@ setJobs(newJobs);
   const handleApplyNowClick = (jobId, e) => {
     if (e) e.stopPropagation();
     setSelectedJobId(jobId);
+
+    sessionStorage.setItem("savedJobsLastPage", savedJobsPage);
 
     // Update jobs and savedJobs state immediately after applying
     setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));

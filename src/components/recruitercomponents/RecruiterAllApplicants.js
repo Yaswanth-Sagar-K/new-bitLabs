@@ -83,7 +83,7 @@ function RecruiterAllApplicants() {
   const navigate = useNavigate();
   const [showReasonModal, setShowReasonModal] = useState(false);
 const [reason, setReason] = useState("");
-const statusOrder = ["Screening", "Shortlisted", "Interviewing", "Selected", "Rejected"];
+const statusOrder = ["Screening", "Shortlisted", "Not Shortlisted", "Interviewing", "Selected", "Rejected"];
 
 
  
@@ -1949,25 +1949,38 @@ const exportCSV = () => {
             <option value="" disabled hidden>
                 Change Status
             </option>
-           {(() => {
+         {(() => {
   if (selectedApplicants.length === 0) return null;
 
-  const minStatusIndex = getCurrentMaxStatusIndex();
-  let nextStatuses = statusOrder.slice(minStatusIndex + 1);
-
-  // Get actual current statuses of selected applicants
   const selectedStatuses = applicants
     .filter((app) => selectedApplicants.includes(app.applyjobid))
     .map((app) => app.applicantStatus);
 
-  const hasSelected = selectedStatuses.includes("Selected");
-  const hasRejected = selectedStatuses.includes("Rejected");
+  const uniqueStatuses = [...new Set(selectedStatuses)];
 
-  // Enforce mutually exclusive final statuses
-  if (hasSelected) {
-    nextStatuses = nextStatuses.filter((status) => status !== "Rejected");
-  } else if (hasRejected) {
-    nextStatuses = nextStatuses.filter((status) => status !== "Selected");
+  if (uniqueStatuses.length > 1) {
+    return <option disabled>Applicants have different statuses</option>;
+  }
+
+  const currentStatus = uniqueStatuses[0];
+  let nextStatuses = [];
+
+  switch (currentStatus) {
+    case "New": 
+      nextStatuses = ["Screening"];
+      break;
+    case "Screening":
+      nextStatuses = ["Shortlisted", "Not Shortlisted"];
+      break;
+    case "Shortlisted":
+      nextStatuses = ["Interviewing"];
+      break;
+    case "Interviewing":
+      nextStatuses = ["Selected", "Rejected"];
+      break;
+    default:
+      nextStatuses = [];
+      break;
   }
 
   return nextStatuses.map((status) => (
@@ -1976,6 +1989,7 @@ const exportCSV = () => {
     </option>
   ));
 })()}
+
 
 
             </select>

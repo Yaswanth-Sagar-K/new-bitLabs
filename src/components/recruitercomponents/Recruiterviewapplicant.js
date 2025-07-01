@@ -43,7 +43,7 @@ const Recruiterviewapplicant = () => {
   const [applicants, setApplicants] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', type: '' });
   const [matchScore, setMatchScore] = useState(0);
-  const statusOrder = ["Screening", "Shortlisted", "Interviewing", "Selected", "Rejected"];
+  const statusOrder = ["Screening", "Shortlisted", "Not Shortlisted", "Interviewing", "Selected", "Rejected"];
 const [applicants1, setApplicants1] = useState({
   matchedSkills: [],
   missingSkills: [],
@@ -621,17 +621,29 @@ useEffect(() => {
                   <option value="" disabled hidden>
                     Change Status
                   </option>
-                 {(() => {
+                {(() => {
   if (!appstatus) return null;
 
-  const currentStatusIndex = statusOrder.indexOf(appstatus);
-  let nextStatuses = statusOrder.slice(currentStatusIndex + 1);
+  let nextStatuses = [];
 
-  // Enforce mutually exclusive final statuses
-  if (appstatus === "Selected") {
-    nextStatuses = nextStatuses.filter((status) => status !== "Rejected");
-  } else if (appstatus === "Rejected") {
-    nextStatuses = nextStatuses.filter((status) => status !== "Selected");
+  switch (appstatus) {
+    case "Screening":
+      nextStatuses = ["Shortlisted", "Not Shortlisted"];
+      break;
+    case "Shortlisted":
+      nextStatuses = ["Interviewing"];
+      break;
+    case "Interviewing":
+      nextStatuses = ["Selected", "Rejected"];
+      break;
+    case "Selected":
+    case "Rejected":
+    case "Not Shortlisted":
+      nextStatuses = []; 
+      break;
+    default:
+      nextStatuses = ["Screening"]; 
+      break;
   }
 
   return nextStatuses.map((status) => (
@@ -640,6 +652,7 @@ useEffect(() => {
     </option>
   ));
 })()}
+
 
                 </select>
               </span>

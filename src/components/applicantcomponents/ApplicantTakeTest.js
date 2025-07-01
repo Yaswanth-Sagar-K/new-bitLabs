@@ -37,6 +37,8 @@ const ApplicantTakeTest = () => {
   const { testName } = location.state || {};
   const { user } = useUserContext();
   const userId = user.id;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
  useEffect(() => {
  
@@ -235,6 +237,9 @@ const fetchQuestion = async() => {
       setValidationMessage('Please provide your answer to submit the test.');
       return;
     }
+
+    if (isSubmitting) return; 
+  setIsSubmitting(true);
     setValidationMessage('');
   
     const calculatedScore = calculateScore();
@@ -681,9 +686,14 @@ const fetchQuestion = async() => {
                 Next
               </button>
             ) : (
-              <button onClick={handleSubmitTest} className="navigation-btn">
-                Submit
-              </button>
+              <button
+  onClick={handleSubmitTest}
+  className="navigation-btn"
+  disabled={isSubmitting}
+>
+  {isSubmitting ? 'Submitting...' : 'Submit'}
+</button>
+
             )}
           </div>
         </div>
