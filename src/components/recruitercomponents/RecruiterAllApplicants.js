@@ -83,7 +83,8 @@ function RecruiterAllApplicants() {
   const navigate = useNavigate();
   const [showReasonModal, setShowReasonModal] = useState(false);
 const [reason, setReason] = useState("");
-const statusOrder = ["Screening", "Shortlisted", "Not Shortlisted", "Interviewing", "Selected", "Rejected"];
+const statusOrder = ["Screening", "Shortlisted", "Interviewing", "Selected", "Rejected"];
+const [showStatusChange, setShowStatusChange] = useState(false);
 
 
  
@@ -1503,6 +1504,11 @@ const handleSelectChange = (e) => {
     setShowReasonModal(true);     // open modal
     return;
   }
+  else{
+    setSelectedStatus(newStatus);
+    setShowStatusChange(true);
+    return;
+  }
  
   // For other statuses, update directly
   updateApplicantStatus(newStatus);
@@ -1556,6 +1562,11 @@ const handleSendFeedback = () => {
  
   updateApplicantStatus(selectedStatus, reason);
 };
+
+const handleChangeStatus = () => {
+  updateApplicantStatus(selectedStatus);
+setShowStatusChange(false)
+}
  
  
 const exportCSV = () => {
@@ -1907,6 +1918,86 @@ const exportCSV = () => {
     </div>
   </div>
 )}
+
+ {showStatusChange && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9999,
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: 'white',
+        padding: '24px',
+        borderRadius: '8px',
+        width: '600px',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+        position: 'relative',
+      }}
+    >
+      <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>Change Status</h3>
+ 
+      {/* Close Button (X) */}
+      <button
+        onClick={() => setShowStatusChange(false)}
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          background: 'transparent',
+          border: 'none',
+          fontSize: '18px',
+          cursor: 'pointer',
+        }}
+      >
+        ×
+      </button>
+ 
+     <p>Are you sure you want to change the status of the selected applicant to <strong>"{selectedStatus}"</strong>?</p>
+ 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+        <button
+          onClick={() => setShowStatusChange(false)}
+          style={{
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            color: '#555',
+            padding: '8px 14px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            textTransform: 'capitalize',
+          }}
+        >
+          cancel
+        </button>
+ 
+        <button
+          onClick={handleChangeStatus}
+          style={{
+            backgroundColor: '#f36f21', // orange button
+            color: 'white',
+            padding: '8px 14px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            textTransform: 'capitalize',
+          }}
+        >
+          Proceed
+        </button>
+      </div>
+    </div>
+  </div>
+)}
  
         <section className="page-title-dashboard">
         <div>
@@ -1966,20 +2057,20 @@ const exportCSV = () => {
   let nextStatuses = [];
 
   switch (currentStatus) {
-    case "New": 
-      nextStatuses = ["Screening"];
-      break;
-    case "Screening":
-      nextStatuses = ["Shortlisted", "Not Shortlisted"];
-      break;
-    case "Shortlisted":
-      nextStatuses = ["Interviewing"];
-      break;
-    case "Interviewing":
-      nextStatuses = ["Selected", "Rejected"];
-      break;
-    default:
+    case "Rejected": 
       nextStatuses = [];
+      break;
+    // case "Screening":
+    //   nextStatuses = ["Shortlisted", "Not Shortlisted"];
+    //   break;
+    // case "Shortlisted":
+    //   nextStatuses = ["Interviewing"];
+    //   break;
+    // case "Interviewing":
+    //   nextStatuses = ["Selected", "Rejected"];
+    //   break;
+    default:
+      nextStatuses = statusOrder;
       break;
   }
 
