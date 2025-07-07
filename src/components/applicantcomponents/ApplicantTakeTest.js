@@ -37,8 +37,8 @@ const ApplicantTakeTest = () => {
   const { testName } = location.state || {};
   const { user } = useUserContext();
   const userId = user.id;
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
+     const [violationDetected, setViolationDetected] = useState(false);
 
  useEffect(() => {
  
@@ -138,6 +138,7 @@ const fetchQuestion = async() => {
 
   const handleGoBackToTest = () => {
     enterFullScreen();
+    setViolationDetected(false);
     setShowGoBackButton(false); // Hide the button when user goes back to full screen
   };
 
@@ -157,6 +158,61 @@ const fetchQuestion = async() => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    const handleViolation = async (reason) => {
+      if (!isTestCompleted && !violationDetected) {
+        console.warn(`Violation detected: ${reason}`);
+        setViolationDetected(true);
+      }
+    };
+  
+    const handleFullScreenChange = () => {
+      if (!document.fullscreenElement && testStarted && !isTestCompleted) {
+        handleViolation('Exited fullscreen');
+      }
+    };
+  
+    const handleVisibilityChange = () => {
+      if (document.hidden && testStarted && !isTestCompleted) {
+        handleViolation('Tab switch or minimized');
+      }
+    };
+  
+    const handleWindowBlur = () => {
+      if (testStarted && !isTestCompleted) {
+        handleViolation('Window lost focus');
+      }
+    };
+  
+    const handleKeyDown = (e) => {
+      if (
+        testStarted &&
+        !isTestCompleted &&
+        !violationDetected &&
+        (
+          e.key === 'Meta' ||
+          e.key === 'Alt' ||
+          (e.ctrlKey && e.key === 'Tab') ||
+          (e.altKey && e.key === 'Tab')
+        )
+      ) {
+        handleViolation('Prohibited key press');
+      }
+    };
+  
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('keydown', handleKeyDown);
+  
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [testStarted, isTestCompleted, violationDetected]);
 
   useEffect(() => {
     let interval;
@@ -238,7 +294,7 @@ const fetchQuestion = async() => {
       return;
     }
 
-    if (isSubmitting) return; 
+     if (isSubmitting) return; 
   setIsSubmitting(true);
     setValidationMessage('');
   
@@ -686,14 +742,13 @@ const fetchQuestion = async() => {
                 Next
               </button>
             ) : (
-              <button
+ <button
   onClick={handleSubmitTest}
   className="navigation-btn"
   disabled={isSubmitting}
 >
-  {isSubmitting ? 'Submitting...' : 'Submit'}
+ Submit
 </button>
-
             )}
           </div>
         </div>
@@ -711,7 +766,7 @@ const fetchQuestion = async() => {
         <TestTimeUp onViewResults={handleViewResults} onCancel={handleViewResults} />
       )}
 
-     {!isTestCompleted && showGoBackButton && (
+     {!isTestCompleted && showGoBackButton && !violationDetected && (
             <div className="go-back-button-overlay">
              
               <p><strong>You won’t be able to continue the test and you’ll be ineligible to take this until 7 days. To avoid,</strong></p>
@@ -721,6 +776,60 @@ const fetchQuestion = async() => {
               </button>
             </div>
           )}
+
+         {violationDetected && !isTestCompleted && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.05)', // Light dark overlay
+      backdropFilter: 'blur(6px)',          
+      zIndex: 9998,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: '#fff',
+        padding: '30px',
+        borderRadius: '10px',
+        maxWidth: '500px',
+        width: '90%',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+        textAlign: 'center',
+        zIndex: 9999,
+      }}
+    >
+      <p>
+        <strong>
+          Shortcuts are not allowed during the test. If any such action is detected again,
+          your test will be automatically submitted.
+        </strong>
+      </p>
+      <br />
+      <button
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#f3780d',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '5px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+        }}
+        onClick={handleGoBackToTest}
+      >
+        Go Back to Test
+      </button>
+    </div>
+  </div>
+)}
+
 
 {currentPage === 'interrupted' && (
   <div className="go-back-button-overlay">
