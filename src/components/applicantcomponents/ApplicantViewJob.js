@@ -148,16 +148,16 @@ const ApplicantViewJob = ({ selectedJobId }) => {
         setScreeningModalOpen(true); // Open modal for screening questions
       } else {
         // Apply directly to internal job if no screening questions
-        await handleInternalJobApply(); // Apply for internal job without screening questions
+        await handleInternalJobApply("New"); // Apply for internal job without screening questions
       }
     } else {
       // External job: No screening questions, just track the visit and apply
-      await handleExternalJobVisit(); // For external jobs, handle visit and open URL
+      await handleExternalJobVisit("Visited"); // For external jobs, handle visit and open URL
     }
   };
   
 
-  const handleInternalJobApply = async () => {
+  const handleInternalJobApply = async (status) => {
     try {
       const profileIdResponse = await axios.get(`${apiUrl}/applicantprofile/${user.id}/profileid`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` },
@@ -170,7 +170,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
       }
 
       const response = await axios.post(
-        `${apiUrl}/applyjob/applicants/applyjob/${user.id}/${jobId}`,
+        `${apiUrl}/applyjob/applicants/applyjob/${user.id}/${jobId}/${status}`,
         {},
         { headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` } }
       );
@@ -192,7 +192,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
     }
   };
 
-  const handleExternalJobVisit = async () => {
+  const handleExternalJobVisit = async (status) => {
     if (!visited) {
       try {
         await axios.post(`${apiUrl}/jobVisit/applicant/track-visit`, { jobId }, {
@@ -200,7 +200,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
         });
         setVisited(true);
         const response = await axios.post(
-          `${apiUrl}/applyjob/applicants/applyjob/${user.id}/${jobId}`,
+          `${apiUrl}/applyjob/applicants/applyjob/${user.id}/${jobId}/${status}`,
           {},
           { headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` } }
         );
@@ -225,7 +225,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
     }
   };
 
-  const applyJob = async () => {
+  const applyJob = async (status) => {
     try {
       const profileIdResponse = await axios.get(`${apiUrl}/applicantprofile/${user.id}/profileid`, {
         headers: {
@@ -240,7 +240,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
       } else {
         setApplied(true);
         const response = await axios.post(
-          `${apiUrl}/applyjob/applicants/applyjob/${user.id}/${jobId}`,
+          `${apiUrl}/applyjob/applicants/applyjob/${user.id}/${jobId}/${status}`,
           { answers },
           {
             headers: {
@@ -262,7 +262,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
 
   const handleScreeningSubmit = async (answers) => {
     setAnswers(answers);
-    await applyJob();
+    await applyJob("New");
   };
 
 
@@ -389,7 +389,7 @@ const ApplicantViewJob = ({ selectedJobId }) => {
           <div>
   <button
     className="btn-apply"
-    onClick={handleExternalJobVisit}
+    onClick={handleApplyNow}
     // disabled={jobDetails.jobStatus === 'Already Applied'}
     style={{
       backgroundColor: applied ? '#08921E' : '#F97316',
