@@ -32,6 +32,7 @@ const ApplicantInterviewStatus = ({ selectedJobId, setSelectedJobId }) => {
   }, []);
 
   useEffect(() => {
+    console.log(jobId)
     const fetchJobDetails = async () => {
       try {
         const authToken = localStorage.getItem('jwtToken');
@@ -128,7 +129,7 @@ const ApplicantInterviewStatus = ({ selectedJobId, setSelectedJobId }) => {
 
   const handleViewJobDetails = () => {
     setSelectedJobId(jobId);
-    navigate(`/applicant-view-job`, { state: { from: location.pathname } });
+    navigate(`/applicant-view-job?jobId=${jobId}`, { state: { from: location.pathname } });
   };
 
   return (
@@ -217,39 +218,26 @@ const ApplicantInterviewStatus = ({ selectedJobId, setSelectedJobId }) => {
                         </div>
                       </div>
                     )}
-                  {jobStatus && jobStatus.length > 0 && (() => {
-  // Step 1: Sort statuses by date ascending
+                   {jobStatus && jobStatus.length > 0 && (() => {
+  // Step 1: Sort by date descending (latest first)
   const sortedStatuses = jobStatus
     .slice()
-    .sort((a, b) => new Date(a.changeDate) - new Date(b.changeDate));
+    .sort((a, b) => new Date(b.changeDate) - new Date(a.changeDate));
  
-  // Step 2: Prepare sets for uniqueness and track final decision
-  const seenStatuses = new Set();
-  const displayStatuses = [];
+  // Step 2: Separate final decision from others
+  const normalStatuses = [];
   let finalDecision = null;
  
   for (const status of sortedStatuses) {
-    const isFinal = status.status === 'Selected' || status.status === 'Rejected';
- 
-    // Final status: only store the first one
-    if (isFinal && !finalDecision) {
+    if (!finalDecision && (status.status === 'Selected' || status.status === 'Rejected')) {
       finalDecision = status;
-    }
-    // Add unique non-final statuses only once
-    else if (!isFinal && !seenStatuses.has(status.status)) {
-      seenStatuses.add(status.status);
-      displayStatuses.push(status);
+    } else if (status.status !== 'Selected' && status.status !== 'Rejected') {
+      normalStatuses.push(status);
     }
   }
  
-  // Step 3: Ensure "New" is always displayed first as "Applied Job"
-  const newStatusIndex = displayStatuses.findIndex(s => s.status === 'New');
-  if (newStatusIndex > 0) {
-    const [newStatus] = displayStatuses.splice(newStatusIndex, 1);
-    displayStatuses.unshift(newStatus);
-  }
- 
-  // Step 4: Add the final decision to the end
+  // Step 3: Combine in correct display order (oldest first)
+  const displayStatuses = [...normalStatuses.reverse()];
   if (finalDecision) displayStatuses.push(finalDecision);
  
   return (
@@ -266,48 +254,57 @@ const ApplicantInterviewStatus = ({ selectedJobId, setSelectedJobId }) => {
       <h3 className="mb-4">Status History</h3>
  
       <ul className="list-unstyled m-0 position-relative">
-        {/* Vertical line */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '141px',
-            top: '0px',
-            height: `${(displayStatuses.length - 1) * 50}px`,
-            width: '2px',
-            backgroundColor: '#f57c00',
-            zIndex: 0,
-          }}
-        ></div>
+        {/* Vertical connector line */}
+       <div
+  style={{
+    position: 'absolute',
+    left: '141px',
+    top: '0px',
+    height: `${(displayStatuses.length - 1) * 50 }px`, // subtract half dot height
+    width: '2px',
+    backgroundColor: '#f57c00',
+    zIndex: 0,
+  }}
+></div>
+ 
  
         {displayStatuses.map((status, index) => {
           const isSelected = status.status === 'Selected';
           const isRejected = status.status === 'Rejected';
  
+          // Dot styling based on status
           const getDotStyle = () => {
             if (isSelected) {
-              return { backgroundColor: 'green', color: 'white' };
+              return {
+                backgroundColor: 'green',
+                color: 'white',
+              };
             } else if (isRejected) {
-              return { backgroundColor: 'red', color: 'white' };
+              return {
+                backgroundColor: 'red',
+                color: 'white',
+              };
             } else {
-              return { backgroundColor: '#f57c00', color: 'transparent' };
+              return {
+                backgroundColor: '#f57c00',
+                color: 'transparent',
+              };
             }
           };
  
           return (
-            <li
-              key={index}
-              className="d-flex align-items-start mb-4 position-relative"
-            >
-              <div
-                style={{ width: '120px', fontWeight: '500', fontSize: '13px' }}
-              >
-                {new Date(status.changeDate).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </div>
+            <li key={index} className="d-flex align-items-start mb-4 position-relative">
+              {/* Date (no time) */}
+              <div style={{ width: '120px', fontWeight: '500', fontSize: '13px' }}>
+  {new Date(status.changeDate).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })}
+</div>
  
+ 
+              {/* Dot with icon */}
               <div
                 style={{
                   width: '18px',
@@ -327,6 +324,7 @@ const ApplicantInterviewStatus = ({ selectedJobId, setSelectedJobId }) => {
                 {isRejected && '✖'}
               </div>
  
+              {/* Status info */}
               <div style={{ flex: 1, fontSize: '14px' }}>
                 <strong>{status.status === 'New' ? 'Applied Job' : status.status}</strong>
  
@@ -343,7 +341,6 @@ const ApplicantInterviewStatus = ({ selectedJobId, setSelectedJobId }) => {
     </div>
   );
 })()}
- 
                   </article>
                 </div>
               </div>

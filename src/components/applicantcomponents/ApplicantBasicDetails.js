@@ -403,6 +403,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
   };
   
   
+  
   const triggerFileInputClick = () => {
     document.getElementById('tf-upload-img').click();
   };
@@ -736,7 +737,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
           onChange={handleQualificationChange}
           selected={qualification ? [qualification] : []}
           className="input-form typeahead"
-          inputProps={{ readOnly: true }}   
+          inputProps={{ readOnly: true }}  
         onInputChange={() => {}}        
         filterBy={() => true}  
         />
@@ -751,7 +752,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
           onChange={handleSpecializationChange}
           selected={specialization ? [specialization] : []}
           className="input-form typeahead"
-          inputProps={{ readOnly: true }}   
+          inputProps={{ readOnly: true }}  
         onInputChange={() => {}}        
         filterBy={() => true}  
         />
@@ -803,7 +804,7 @@ delete transformedApplicantProfileDTO.skillsRequired;
           onChange={handlePreferredJobLocationsChange}
           selected={preferredJobLocations}
           className="input-form typeahead"
-          inputProps={{ readOnly: true }}   
+          inputProps={{ readOnly: true }}  
         onInputChange={() => {}}        
         filterBy={() => true}  
         />
@@ -1018,7 +1019,6 @@ delete transformedApplicantProfileDTO.skillsRequired;
     Submit
   </button>
 )}
-
           </div>
         </form>
       </div>

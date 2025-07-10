@@ -158,7 +158,6 @@ const response = await axios.post(
   catch (error) {
       console.error('Password change failed. Old password is wrong.:', error);
       const errorMessage = error.response.data;
-      console.log(errorMessage);
       if(errorMessage === 'Your old password not matching with data base password'){
         setSnackbar({ open: true, message: 'old password is incorrect', type: 'error' });
       }

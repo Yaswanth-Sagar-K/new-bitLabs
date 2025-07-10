@@ -37,8 +37,9 @@ const ApplicantTakeTest = () => {
   const { testName } = location.state || {};
   const { user } = useUserContext();
   const userId = user.id;
-    const [isSubmitting, setIsSubmitting] = useState(false);
-     const [violationDetected, setViolationDetected] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [violationDetected, setViolationDetected] = useState(false);
+  const [violationCount, setViolationCount] = useState(0);
 
  useEffect(() => {
  
@@ -139,8 +140,11 @@ const fetchQuestion = async() => {
   const handleGoBackToTest = () => {
     enterFullScreen();
     setViolationDetected(false);
+    setViolationCount(violationCount + 1);
     setShowGoBackButton(false); // Hide the button when user goes back to full screen
   };
+
+
 
   useEffect(() => {
     // Handle online/offline events
@@ -159,11 +163,18 @@ const fetchQuestion = async() => {
     };
   }, []);
 
+useEffect(() => {
+  if(violationCount === 3){
+   handleSubmitTest();
+  }
+}, [violationCount])
+
   useEffect(() => {
     const handleViolation = async (reason) => {
       if (!isTestCompleted && !violationDetected) {
         console.warn(`Violation detected: ${reason}`);
         setViolationDetected(true);
+        setViolationCount(violationCount + 1);
       }
     };
   
@@ -289,7 +300,7 @@ const fetchQuestion = async() => {
 
   
   const handleSubmitTest = async () => {
-    if (!selectedOptions[currentQuestionIndex]) {
+    if (!selectedOptions[currentQuestionIndex] && !violationDetected) {
       setValidationMessage('Please provide your answer to submit the test.');
       return;
     }
@@ -647,6 +658,9 @@ const fetchQuestion = async() => {
               <li>
               To avoid interruptions, take the test on a PC, as calls may disrupt it on mobile.
               </li>
+              <li>
+              Any attempt to switch tabs, change windows, or engage in suspicious activity will result in automatic test submission.
+              </li>
             </ul>
           </div>
           <div align="right">
@@ -766,7 +780,7 @@ const fetchQuestion = async() => {
         <TestTimeUp onViewResults={handleViewResults} onCancel={handleViewResults} />
       )}
 
-     {!isTestCompleted && showGoBackButton && !violationDetected && (
+     {/* {!isTestCompleted && showGoBackButton && !violationDetected && (
             <div className="go-back-button-overlay">
              
               <p><strong>You won’t be able to continue the test and you’ll be ineligible to take this until 7 days. To avoid,</strong></p>
@@ -775,9 +789,9 @@ const fetchQuestion = async() => {
                 Go Back to Test
               </button>
             </div>
-          )}
+          )} */}
 
-         {violationDetected && !isTestCompleted && (
+      {violationDetected && !isTestCompleted && (
   <div
     style={{
       position: 'fixed',
@@ -785,8 +799,8 @@ const fetchQuestion = async() => {
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.05)', // Light dark overlay
-      backdropFilter: 'blur(6px)',          
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      backdropFilter: 'blur(6px)',
       zIndex: 9998,
       display: 'flex',
       alignItems: 'center',
@@ -807,8 +821,9 @@ const fetchQuestion = async() => {
     >
       <p>
         <strong>
-          Shortcuts are not allowed during the test. If any such action is detected again,
-          your test will be automatically submitted.
+          {isSubmitting
+            ? 'This test has been terminated and submitted automatically due to repeated exam violations.'
+            : 'Shortcuts are not allowed during the test. If any such action is detected again, your test will be automatically submitted.'}
         </strong>
       </p>
       <br />
@@ -820,11 +835,12 @@ const fetchQuestion = async() => {
           border: 'none',
           borderRadius: '5px',
           fontWeight: 'bold',
-          cursor: 'pointer',
+          cursor: isSubmitting ? 'not-allowed' : 'pointer',
         }}
-        onClick={handleGoBackToTest}
+        onClick={!isSubmitting ? handleGoBackToTest : undefined}
+        disabled={isSubmitting}
       >
-        Go Back to Test
+        {isSubmitting ? 'Submitting' : 'Go Back to Test'}
       </button>
     </div>
   </div>

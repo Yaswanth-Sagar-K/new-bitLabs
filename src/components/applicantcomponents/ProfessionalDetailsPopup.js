@@ -165,7 +165,7 @@ const ProfessionalDetailsPopup = ({ applicantDetails }) => {
             onChange={handleQualificationChange}
             selected={formValues.qualification ? [formValues.qualification] : []}
             className="custom-typeahead"
-            inputProps={{ readOnly: true }}   
+            inputProps={{ readOnly: true }}  
         onInputChange={() => {}}        
         filterBy={() => true}  
           />
@@ -180,7 +180,7 @@ const ProfessionalDetailsPopup = ({ applicantDetails }) => {
             onChange={handleSpecializationChange}
             selected={formValues.specialization ? [formValues.specialization] : []}
             className="custom-typeahead"
-            inputProps={{ readOnly: true }}   
+            inputProps={{ readOnly: true }}  
         onInputChange={() => {}}        
         filterBy={() => true}  
           />
@@ -245,9 +245,9 @@ const ProfessionalDetailsPopup = ({ applicantDetails }) => {
     selected={formValues.preferredJobLocations.map((city) => ({ label: city, value: city }))}
     className="custom-typeahead2"
     labelKey="label"
-    inputProps={{ readOnly: true }}   
+    inputProps={{ readOnly: true }}  
         onInputChange={() => {}}        
-       filterBy={(option) =>
+         filterBy={(option) =>
     !formValues.preferredJobLocations.includes(option.value)
        }
   />
