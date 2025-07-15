@@ -22,6 +22,7 @@ import TermsOfServices from './components/common/TermsOfServices';
 import ApplicantBasicDetails from './components/applicantcomponents/ApplicantBasicDetails';
 import JobWidget from './components/jobWidget';
 import ChatBotWidget from './ChatBotWidget';
+import ApplicantFindJobs from './components/applicantcomponents/ApplicantFindJobs';
 
 
 

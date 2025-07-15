@@ -83,10 +83,6 @@ function RecruiterAllApplicants() {
   const navigate = useNavigate();
   const [showReasonModal, setShowReasonModal] = useState(false);
 const [reason, setReason] = useState("");
-const statusOrder = ["Screening", "Shortlisted", "Interviewing", "Selected", "Rejected"];
-const [showStatusChange, setShowStatusChange] = useState(false);
-
-
  
   const recordsPerPage = 10;
  
@@ -320,43 +316,6 @@ const m=new Map();
       }
     });
   };
-
-  const getSelectedStatus = () => {
-  if (selectedApplicants.length === 0) return null;
-  const firstSelectedApp = currentRecords.find(app =>
-    selectedApplicants.includes(app.applyjobid)
-  );
-  return firstSelectedApp ? firstSelectedApp.applicantStatus : null;
-};
-
-  
-//   const handleCheckboxChange2 = (applyjobid) => {
-//   // Set the current page mapping
-//   m.set(currentPage, applyjobid);
-
-//   const selectedApp = currentRecords.find(app => app.applyjobid === applyjobid);
-//   if (!selectedApp) return;
-
-//   const status = selectedApp.applicantStatus;
-
-//   setSelectedApplicants((prevSelected) => {
-//     if (prevSelected.includes(applyjobid)) {
-//       const updated = prevSelected.filter((id) => id !== applyjobid);
-      
-//       // If no other checkboxes remain selected, clear selectedStatus
-//       if (updated.length === 0) {
-//         setSelectedCheckBoxStatus(null);
-//       }
-
-//       return updated;
-//     } else {
-//       setSelectedCheckBoxStatus(status); // Set the selected status based on first selection
-//       return [...prevSelected, applyjobid];
-//     }
-//   });
-// };
-
-  
   const handleSelectAll = (event) => {
     const isChecked = event.target.checked;
     if (isChecked) {
@@ -1195,14 +1154,12 @@ const handleTextFieldChange = (id, value) => {
     const tableSelectedCheckBoxes1=localStorage.getItem('tableSelectedCheckBoxes');
     const savedSelectedColoumns=localStorage.getItem('tableSelectedColumns');
     try {
-      const jwtToken = localStorage.getItem('jwtToken')
       if(!flagForProfileBack){
        if(tableSelectedCheckBoxes1){
         setSelectedCheckboxes(JSON.parse(tableSelectedCheckBoxes1));
         setSelectedColumns(JSON.parse(savedSelectedColoumns));
        }
-      const response = await axios.get(`${apiUrl}/applyjob/recruiter/${user.id}/appliedapplicants`
-      );
+      const response = await axios.get(`${apiUrl}/applyjob/recruiter/${user.id}/appliedapplicants`);
        applicantsArray = Object.values(response.data).flat();
       setCount(applicantsArray.length);
       setApplicants(applicantsArray);
@@ -1477,17 +1434,6 @@ const handleTextFieldChange = (id, value) => {
     }
   };
 
-const getCurrentMaxStatusIndex = () => {
-  const selectedStatuses = applicants
-    .filter((app) => selectedApplicants.includes(app.applyjobid))
-    .map((app) => app.applicantStatus);
-
-  const highestIndex = Math.max(
-    ...selectedStatuses.map((status) => statusOrder.indexOf(status))
-  );
-
-  return highestIndex;
-};
 
  
 const handleSelectChange = (e) => {
@@ -1502,11 +1448,6 @@ const handleSelectChange = (e) => {
   if (newStatus === "Rejected" || newStatus === "Selected") {
     setSelectedStatus(newStatus); // store status for use after feedback
     setShowReasonModal(true);     // open modal
-    return;
-  }
-  else{
-    setSelectedStatus(newStatus);
-    setShowStatusChange(true);
     return;
   }
  
@@ -1562,11 +1503,6 @@ const handleSendFeedback = () => {
  
   updateApplicantStatus(selectedStatus, reason);
 };
-
-const handleChangeStatus = () => {
-  updateApplicantStatus(selectedStatus);
-setShowStatusChange(false)
-}
  
  
 const exportCSV = () => {
@@ -1918,86 +1854,6 @@ const exportCSV = () => {
     </div>
   </div>
 )}
-
- {showStatusChange && (
-  <div
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-    }}
-  >
-    <div
-      style={{
-        backgroundColor: 'white',
-        padding: '24px',
-        borderRadius: '8px',
-        width: '600px',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
-        position: 'relative',
-      }}
-    >
-      <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>Change Status</h3>
- 
-      {/* Close Button (X) */}
-      <button
-        onClick={() => setShowStatusChange(false)}
-        style={{
-          position: 'absolute',
-          top: '12px',
-          right: '12px',
-          background: 'transparent',
-          border: 'none',
-          fontSize: '18px',
-          cursor: 'pointer',
-        }}
-      >
-        ×
-      </button>
- 
-     <p>Are you sure you want to change the status of the selected applicant to <strong>"{selectedStatus}"</strong>?</p>
- 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-        <button
-          onClick={() => setShowStatusChange(false)}
-          style={{
-            backgroundColor: 'white',
-            border: '1px solid #ccc',
-            color: '#555',
-            padding: '8px 14px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            textTransform: 'capitalize',
-          }}
-        >
-          cancel
-        </button>
- 
-        <button
-          onClick={handleChangeStatus}
-          style={{
-            backgroundColor: '#f36f21', // orange button
-            color: 'white',
-            padding: '8px 14px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            textTransform: 'capitalize',
-          }}
-        >
-          Proceed
-        </button>
-      </div>
-    </div>
-  </div>
-)}
  
         <section className="page-title-dashboard">
         <div>
@@ -2040,49 +1896,11 @@ const exportCSV = () => {
             <option value="" disabled hidden>
                 Change Status
             </option>
-         {(() => {
-  if (selectedApplicants.length === 0) return null;
-
-  const selectedStatuses = applicants
-    .filter((app) => selectedApplicants.includes(app.applyjobid))
-    .map((app) => app.applicantStatus);
-
-  const uniqueStatuses = [...new Set(selectedStatuses)];
-
-  if (uniqueStatuses.length > 1) {
-    return <option disabled>Applicants have different statuses</option>;
-  }
-
-  const currentStatus = uniqueStatuses[0];
-  let nextStatuses = [];
-
-  switch (currentStatus) {
-    case "Rejected": 
-      nextStatuses = [];
-      break;
-    // case "Screening":
-    //   nextStatuses = ["Shortlisted", "Not Shortlisted"];
-    //   break;
-    // case "Shortlisted":
-    //   nextStatuses = ["Interviewing"];
-    //   break;
-    // case "Interviewing":
-    //   nextStatuses = ["Selected", "Rejected"];
-    //   break;
-    default:
-      nextStatuses = statusOrder;
-      break;
-  }
-
-  return nextStatuses.map((status) => (
-    <option key={status} value={status}>
-      {status}
-    </option>
-  ));
-})()}
-
-
-
+            <option value="Screening">Screening</option>
+            <option value="Shortlisted">Shortlisted</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Selected">Selected</option>
+            <option value="Rejected">Rejected</option>
             </select>
             </div>
           <div className="themes-container">
@@ -3115,16 +2933,6 @@ const exportCSV = () => {
                                   checked={selectedApplicants.includes(application.applyjobid)}
                                   onChange={() => handleCheckboxChange2(application.applyjobid)}
                                   name={`applicantCheckbox-${application.applyjobid}`}
-                                   disabled={
-    (() => {
-      const selectedCheckBoxStatus = getSelectedStatus();
-      return (
-        selectedApplicants.length > 0 &&
-        !selectedApplicants.includes(application.applyjobid) &&
-        application.applicantStatus !== selectedCheckBoxStatus
-      );
-    })()
-  }
                                 />
                               </td>
                      
@@ -3132,8 +2940,8 @@ const exportCSV = () => {
   <Link
   to={
     application.preScreenedCondition === 'PreScreened'
-      ? `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}&appstatus=${application.applicantStatus}&preScreened=true`
-      : `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}&appstatus=${application.applicantStatus}`
+      ? `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}&preScreened=true`
+      : `/viewapplicant/${application.id}?jobid=${application.jobId}&appid=${application.id}&applyid=${application.applyjobid}`
   }
   style={{ color: '#0583D2', textDecoration: 'none', position: 'relative' }}
 >
@@ -3156,7 +2964,7 @@ const exportCSV = () => {
 
         {/* Tooltip */}
         {tooltipVisibleId === index && (  // Only show tooltip if hovered
-          <div 
+          <div
             style={{
               position: 'absolute',
               top: index === currentRecords.length - 1 ? '-60px' : '25px',

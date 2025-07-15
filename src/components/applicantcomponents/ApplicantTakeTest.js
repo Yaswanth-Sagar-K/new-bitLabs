@@ -67,8 +67,11 @@ const fetchQuestion = async() => {
  
   }, [testName])
  
-
-
+window.addEventListener('keydown', function (e) {
+  if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r')) {
+    e.preventDefault();
+  }
+});
   useEffect(() => {
     // Shuffle the questions array when the component mounts
     const shuffled = shuffleArray(questions.questions);
@@ -116,7 +119,9 @@ const fetchQuestion = async() => {
 
   const handleTestCompletion = () => {
     setIsTestCompleted(true);
-    exitFullScreen();
+   if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+  exitFullScreen();
+}
   };
 
   useEffect(() => {
@@ -140,11 +145,8 @@ const fetchQuestion = async() => {
   const handleGoBackToTest = () => {
     enterFullScreen();
     setViolationDetected(false);
-    setViolationCount(violationCount + 1);
     setShowGoBackButton(false); // Hide the button when user goes back to full screen
   };
-
-
 
   useEffect(() => {
     // Handle online/offline events
@@ -164,7 +166,7 @@ const fetchQuestion = async() => {
   }, []);
 
 useEffect(() => {
-  if(violationCount === 3){
+  if(violationCount === 2){
    handleSubmitTest();
   }
 }, [violationCount])
@@ -174,7 +176,10 @@ useEffect(() => {
       if (!isTestCompleted && !violationDetected) {
         console.warn(`Violation detected: ${reason}`);
         setViolationDetected(true);
-        setViolationCount(violationCount + 1);
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+  exitFullScreen();
+}
+         setViolationCount(violationCount + 1);
       }
     };
   
@@ -304,7 +309,6 @@ useEffect(() => {
       setValidationMessage('Please provide your answer to submit the test.');
       return;
     }
-
      if (isSubmitting) return; 
   setIsSubmitting(true);
     setValidationMessage('');
@@ -314,7 +318,7 @@ useEffect(() => {
     const jwtToken = localStorage.getItem('jwtToken');
 
     if (isOnline) {
-
+try {
     if(testName === 'General Aptitude Test' || testName === 'Technical Test'){
        // Submit the test result to the API
     fetch(`${apiUrl}/applicant1/saveTest/${userId}`, {
@@ -390,13 +394,15 @@ useEffect(() => {
     } else {
       console.error("Failed to update Zoho API", response.data);
     }
-    
   }
-  else {
-    // Notify the user about the loss of connection
-    setValidationMessage('No internet connection. Please check your connection and try again.');
+  catch (error) {
+    if (!navigator.onLine || error.message === 'Failed to fetch') {
+      setValidationMessage('Network error. Please check your connection and try again.');
+      setCurrentPage('interrupted');
+    }
+    return;
   }
-
+}
     handleTestCompletion();
   setShowGoBackButton(false);
     // Show the acknowledgment popup based on the test result
@@ -471,7 +477,9 @@ useEffect(() => {
           console.error('Error submitting test result:', error);
         });
     }
-    
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+  exitFullScreen();
+}
     // Navigate to the next page after the API call
     navigate("/applicant-verified-badges");
   };
@@ -756,11 +764,7 @@ useEffect(() => {
                 Next
               </button>
             ) : (
- <button
-  onClick={handleSubmitTest}
-  className="navigation-btn"
-  disabled={isSubmitting}
->
+ <button onClick={handleSubmitTest} className="navigation-btn" disabled={isSubmitting}>
  Submit
 </button>
             )}
@@ -780,7 +784,7 @@ useEffect(() => {
         <TestTimeUp onViewResults={handleViewResults} onCancel={handleViewResults} />
       )}
 
-     {/* {!isTestCompleted && showGoBackButton && !violationDetected && (
+    {/*  {!isTestCompleted && showGoBackButton && violationDetected && (
             <div className="go-back-button-overlay">
              
               <p><strong>You won’t be able to continue the test and you’ll be ineligible to take this until 7 days. To avoid,</strong></p>
@@ -789,36 +793,10 @@ useEffect(() => {
                 Go Back to Test
               </button>
             </div>
-          )} */}
+          )}  */}
 
       {violationDetected && !isTestCompleted && (
-  <div
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      backdropFilter: 'blur(6px)',
-      zIndex: 9998,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-  >
-    <div
-      style={{
-        backgroundColor: '#fff',
-        padding: '30px',
-        borderRadius: '10px',
-        maxWidth: '500px',
-        width: '90%',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
-        textAlign: 'center',
-        zIndex: 9999,
-      }}
-    >
+    <div className="go-back-button-overlay">
       <p>
         <strong>
           {isSubmitting
@@ -827,23 +805,13 @@ useEffect(() => {
         </strong>
       </p>
       <br />
-      <button
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#f3780d',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          fontWeight: 'bold',
-          cursor: isSubmitting ? 'not-allowed' : 'pointer',
-        }}
+      <button className="exit-popup-btn exit-popup-confirm-btn"
         onClick={!isSubmitting ? handleGoBackToTest : undefined}
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Submitting' : 'Go Back to Test'}
       </button>
     </div>
-  </div>
 )}
 
 

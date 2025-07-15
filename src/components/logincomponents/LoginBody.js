@@ -53,7 +53,12 @@ function LoginBody({ handleLogin }) {
     setUtmCampaign(params.get("utm_campaign") || "bitlabs.in/jobs");
     setUtmContent(params.get("utm_content") || "bitlabs.in/jobs");
     setUtmTerm(params.get("utm_term") || "bitlabs.in/jobs");
+    console.log(utmSource);
   }, [location, navigate]);
+
+  useEffect(() => {
+  console.log("Updated utmSource:", utmSource);
+}, [utmSource]);
 
   const login = useGoogleLogin({
     onSuccess: async (response) => {
