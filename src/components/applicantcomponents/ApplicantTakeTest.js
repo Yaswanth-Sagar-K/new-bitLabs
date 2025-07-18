@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation,Link } from 'react-router-dom';
 import './css/ApplicantTakeTest.css';
 import Logo from '../../images/artboard.svg';
@@ -9,6 +9,8 @@ import { useUserContext } from '../common/UserProvider';
 import TestPassAcknowledgment from './TestPassAcknowledgment';
 import TestFailAcknowledgment from './TestFailAcknowledgment';
 import axios from 'axios';
+import * as faceapi from 'face-api.js'; 
+import Snackbar from '../common/Snackbar';
 
 
 const shuffleArray = (array) => {
@@ -37,9 +39,23 @@ const ApplicantTakeTest = () => {
   const { testName } = location.state || {};
   const { user } = useUserContext();
   const userId = user.id;
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [violationDetected, setViolationDetected] = useState(false);
-  const [violationCount, setViolationCount] = useState(0);
+  const modelPath = '/models';
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [isCameraOn, setCameraOn] = useState(false);
+  const [warning, setWarning] = useState(0);
+  const [snackbars, setSnackbars] = useState([]);
+  const [isVideoViolation, setVideoViolation] = useState(false);
+const faceIntervalRef = useRef(null);
+
+
+  const addSnackbar = (snackbar) => {
+    setSnackbars((prevSnackbars) => [...prevSnackbars, snackbar]);
+  };
+
+  const handleCloseSnackbar = (index) => {
+    setSnackbars((prevSnackbars) => prevSnackbars.filter((_, i) => i !== index));
+  };
 
  useEffect(() => {
  
@@ -67,11 +83,129 @@ const fetchQuestion = async() => {
  
   }, [testName])
  
-window.addEventListener('keydown', function (e) {
-  if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r')) {
-    e.preventDefault();
+
+  useEffect(() => {
+  const loadModels = async () => {
+    try {
+      await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
+      await faceapi.nets.faceExpressionNet.loadFromUri(modelPath);
+      console.log('Models loaded successfully');
+    } catch (err) {
+      console.error('Error loading models:', err);
+    }
+  };
+
+  loadModels();
+}, [currentPage]);
+
+useEffect(() => {
+  const handlePopState = () => {
+    console.log('Browser back button detected');
+    if (streamRef.current instanceof MediaStream) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  window.addEventListener("popstate", handlePopState);
+
+  return () => {
+    window.removeEventListener("popstate", handlePopState);
+  };
+}, []);
+
+useEffect(() => {
+  return () => {
+    stopVideo();
+  };
+}, []);
+
+  // const startVideo = async () => {
+  //   stopVideo();
+  //   try {
+  //     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  //     setCameraOn(true);
+  //     if (videoRef.current) {
+  //       videoRef.current.srcObject = stream;
+  //       videoRef.current.onloadedmetadata = () => {
+  //       videoRef.current.play()
+  //         .then(() => { 
+  //           console.log('video started');
+  //         })
+  //         .catch((err) => {
+  //           console.error('Play error:', err);
+  //         });
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error('Error accessing webcam:', err);
+  //     setCameraOn(false);
+  //      console.log('video not started')
+  //   }
+  // };
+
+  useEffect(() => {
+  console.log("Camera state:", isCameraOn);
+}, [isCameraOn]);
+
+const stopVideo = () => {
+  // Stop all tracks in the stream
+  if (streamRef.current) {
+    streamRef.current.getTracks().forEach(track => {
+      track.stop(); // Stop each media track
+    });
+    streamRef.current = null;
   }
-});
+
+  // Clear video element source
+  if (videoRef.current) {
+    videoRef.current.pause(); // Stop playback
+    videoRef.current.srcObject = null;
+  }
+};
+
+ const incrementWarning = () => {
+  setWarning(prev => {
+    const newWarning = prev + 1;
+    if (newWarning >= 5) {
+      setVideoViolation(true);
+      stopVideo();
+      handleSubmitTest();
+      addSnackbar({ message: 'Test submitted due to number of violations', type: 'error' });
+    }
+    return newWarning;
+  });
+};
+
+const detectFaces = async () => {
+  if (videoRef.current && isCameraOn) {
+    const detections = await faceapi.detectAllFaces(videoRef.current);
+
+    if (detections.length >= 2) {
+      addSnackbar({ message: 'Multiple faces detected', type: 'error' });
+      incrementWarning();
+      console.log('Multiple faces detected');
+    } 
+    else if (detections.length === 0) {
+      addSnackbar({ message: 'No face is detected', type: 'error' });
+      incrementWarning();
+    } 
+    else if (detections.some(det => det.score < 0.65)) {
+      addSnackbar({ message: 'Face is not clear', type: 'error' });
+      incrementWarning();
+    }
+  }
+};
+
+
   useEffect(() => {
     // Shuffle the questions array when the component mounts
     const shuffled = shuffleArray(questions.questions);
@@ -119,9 +253,9 @@ window.addEventListener('keydown', function (e) {
 
   const handleTestCompletion = () => {
     setIsTestCompleted(true);
-   if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-  exitFullScreen();
-}
+   if (document.fullscreenElement) {
+    document.exitFullscreen();
+  }
   };
 
   useEffect(() => {
@@ -144,7 +278,6 @@ window.addEventListener('keydown', function (e) {
 
   const handleGoBackToTest = () => {
     enterFullScreen();
-    setViolationDetected(false);
     setShowGoBackButton(false); // Hide the button when user goes back to full screen
   };
 
@@ -164,71 +297,6 @@ window.addEventListener('keydown', function (e) {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-useEffect(() => {
-  if(violationCount === 2){
-   handleSubmitTest();
-  }
-}, [violationCount])
-
-  useEffect(() => {
-    const handleViolation = async (reason) => {
-      if (!isTestCompleted && !violationDetected) {
-        console.warn(`Violation detected: ${reason}`);
-        setViolationDetected(true);
-        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-  exitFullScreen();
-}
-         setViolationCount(violationCount + 1);
-      }
-    };
-  
-    const handleFullScreenChange = () => {
-      if (!document.fullscreenElement && testStarted && !isTestCompleted) {
-        handleViolation('Exited fullscreen');
-      }
-    };
-  
-    const handleVisibilityChange = () => {
-      if (document.hidden && testStarted && !isTestCompleted) {
-        handleViolation('Tab switch or minimized');
-      }
-    };
-  
-    const handleWindowBlur = () => {
-      if (testStarted && !isTestCompleted) {
-        handleViolation('Window lost focus');
-      }
-    };
-  
-    const handleKeyDown = (e) => {
-      if (
-        testStarted &&
-        !isTestCompleted &&
-        !violationDetected &&
-        (
-          e.key === 'Meta' ||
-          e.key === 'Alt' ||
-          (e.ctrlKey && e.key === 'Tab') ||
-          (e.altKey && e.key === 'Tab')
-        )
-      ) {
-        handleViolation('Prohibited key press');
-      }
-    };
-  
-    document.addEventListener('fullscreenchange', handleFullScreenChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
-    window.addEventListener('keydown', handleKeyDown);
-  
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullScreenChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [testStarted, isTestCompleted, violationDetected]);
 
   useEffect(() => {
     let interval;
@@ -256,7 +324,91 @@ useEffect(() => {
       // Optionally save the current state or handle submission logic here
   };
 
+useEffect(() => {
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream;
+      setCameraOn(true);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play().catch(err => console.error('Play error:', err));
+        };
+      }
+
+      if (currentPage === 'test') {
+        faceIntervalRef.current = setInterval(() => {
+          detectFaces();
+        }, 3000);
+      }
+
+      stream.getVideoTracks()[0].onended = () => {
+        console.warn('Camera manually stopped');
+        setCameraOn(false);
+      };
+    } catch (err) {
+      console.error('Error starting camera:', err);
+      setCameraOn(false);
+    }
+  };
+
+  const stopCamera = async () => {
+    if (faceIntervalRef.current) {
+      clearInterval(faceIntervalRef.current);
+      faceIntervalRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    setCameraOn(false);
+    console.log('Camera stream stopped');
+  };
+
+  const manageCamera = async () => {
+    await stopCamera();
+
+    if (currentPage === 'test' || currentPage === 'instructions') {
+      await startCamera();
+    }
+  };
+
+  manageCamera();
+
+  return () => {
+    stopCamera(); // still clean up on unmount
+  };
+}, [currentPage]);
+
+
+// Attach stream when videoRef becomes available
+useEffect(() => {
+  if (videoRef.current && streamRef.current) {
+    videoRef.current.srcObject = streamRef.current;
+    videoRef.current.onloadedmetadata = () => {
+      videoRef.current.play().catch(err => console.error(err));
+    };
+  }
+}, [videoRef.current]);
+
+
+
+
+
   const startTest = () => {
+    // startVideo();
+    // faceIntervalRef.current = setInterval(() => {
+    //   detectFaces();
+    // }, 3000);
     setCurrentPage('test');
     setTestStarted(true);
     enterFullScreen();
@@ -305,20 +457,18 @@ useEffect(() => {
 
   
   const handleSubmitTest = async () => {
-    if (!selectedOptions[currentQuestionIndex] && !violationDetected) {
+    if (!selectedOptions[currentQuestionIndex] && isVideoViolation) {
       setValidationMessage('Please provide your answer to submit the test.');
       return;
     }
-     if (isSubmitting) return; 
-  setIsSubmitting(true);
     setValidationMessage('');
-  
+    stopVideo();
     const calculatedScore = calculateScore();
     const testStatus = calculatedScore >= 70 ? 'P' : 'F';
     const jwtToken = localStorage.getItem('jwtToken');
 
     if (isOnline) {
-try {
+
     if(testName === 'General Aptitude Test' || testName === 'Technical Test'){
        // Submit the test result to the API
     fetch(`${apiUrl}/applicant1/saveTest/${userId}`, {
@@ -394,15 +544,13 @@ try {
     } else {
       console.error("Failed to update Zoho API", response.data);
     }
+    
   }
-  catch (error) {
-    if (!navigator.onLine || error.message === 'Failed to fetch') {
-      setValidationMessage('Network error. Please check your connection and try again.');
-      setCurrentPage('interrupted');
-    }
-    return;
+  else {
+    // Notify the user about the loss of connection
+    setValidationMessage('No internet connection. Please check your connection and try again.');
   }
-}
+
     handleTestCompletion();
   setShowGoBackButton(false);
     // Show the acknowledgment popup based on the test result
@@ -421,6 +569,7 @@ try {
   };
 
   const handleConfirmExit = () => {
+    stopVideo();
     setShowExitPopup(false);
     if(testStarted && testName !== 'General Aptitude Test' && testName !== 'Technical Test'){
       handleTestCompletion();
@@ -477,9 +626,7 @@ try {
           console.error('Error submitting test result:', error);
         });
     }
-        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-  exitFullScreen();
-}
+    
     // Navigate to the next page after the API call
     navigate("/applicant-verified-badges");
   };
@@ -666,13 +813,10 @@ try {
               <li>
               To avoid interruptions, take the test on a PC, as calls may disrupt it on mobile.
               </li>
-              <li>
-              Any attempt to switch tabs, change windows, or engage in suspicious activity will result in automatic test submission.
-              </li>
             </ul>
           </div>
           <div align="right">
-            <button className="start-btn" onClick={startTest}>
+            <button className="start-btn" onClick={startTest} >
               Start
             </button>
           </div>
@@ -681,6 +825,24 @@ try {
 
       {currentPage === 'test' && (
         <div className={`test-page ${showGoBackButton ? 'blur-background' : ''}`}>
+          <video
+    ref={videoRef}
+    autoPlay
+    muted
+    playsInline
+    style={{
+       position: 'fixed',
+  bottom: '5%',
+  left: '5%',
+  width: '200px',      
+  height: '200px',     
+  zIndex: 1000,
+  border: '2px solid #ccc', 
+  borderRadius: '50%',
+   objectFit: 'cover',
+  overflow: 'hidden'
+    }}
+  />
           <div className="header">
             <h3>
               <span className="text-name1">{testName}</span>
@@ -764,9 +926,9 @@ try {
                 Next
               </button>
             ) : (
- <button onClick={handleSubmitTest} className="navigation-btn" disabled={isSubmitting}>
- Submit
-</button>
+              <button onClick={handleSubmitTest} className="navigation-btn">
+                Submit
+              </button>
             )}
           </div>
         </div>
@@ -784,7 +946,7 @@ try {
         <TestTimeUp onViewResults={handleViewResults} onCancel={handleViewResults} />
       )}
 
-    {/*  {!isTestCompleted && showGoBackButton && violationDetected && (
+     {!isTestCompleted && showGoBackButton && (
             <div className="go-back-button-overlay">
              
               <p><strong>You won’t be able to continue the test and you’ll be ineligible to take this until 7 days. To avoid,</strong></p>
@@ -793,27 +955,7 @@ try {
                 Go Back to Test
               </button>
             </div>
-          )}  */}
-
-      {violationDetected && !isTestCompleted && (
-    <div className="go-back-button-overlay">
-      <p>
-        <strong>
-          {isSubmitting
-            ? 'This test has been terminated and submitted automatically due to repeated exam violations.'
-            : 'Shortcuts are not allowed during the test. If any such action is detected again, your test will be automatically submitted.'}
-        </strong>
-      </p>
-      <br />
-      <button className="exit-popup-btn exit-popup-confirm-btn"
-        onClick={!isSubmitting ? handleGoBackToTest : undefined}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Submitting' : 'Go Back to Test'}
-      </button>
-    </div>
-)}
-
+          )}
 
 {currentPage === 'interrupted' && (
   <div className="go-back-button-overlay">
@@ -827,6 +969,18 @@ try {
           <p>You can retake the test in 7 days.</p>
         </div>
       )}
+
+            {snackbars.map((snackbar, index) => (
+              <Snackbar
+                key={index}
+                index={index}
+                message={snackbar.message}
+                type={snackbar.type}
+                onClose={handleCloseSnackbar}
+                link={snackbar.link}
+                linkText={snackbar.linkText}
+              />
+            ))}
     </div>
   );
 };
